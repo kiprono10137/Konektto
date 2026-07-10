@@ -21,6 +21,8 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        supportActionBar?.hide()
+
         recyclerView = findViewById(R.id.rvRooms)
 
         db = FirebaseFirestore.getInstance()

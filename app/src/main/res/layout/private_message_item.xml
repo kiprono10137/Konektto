@@ -5,8 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="4dp"
+    android:layout_margin="8dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp">
 
@@ -17,28 +16,18 @@
         android:padding="12dp">
 
         <TextView
-            android:id="@+id/tvSenderName"
+            android:id="@+id/tvPrivateMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Username"
-            android:textStyle="bold"
-            android:textSize="15sp"/>
-
-        <TextView
-            android:id="@+id/tvMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Hello everyone!"
+            android:text="Hello!"
             android:textSize="16sp"/>
 
         <TextView
-            android:id="@+id/tvTime"
+            android:id="@+id/tvPrivateTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="10:45 AM"
-            android:textColor="#6B7280"
+            android:text="10:45 PM"
             android:textSize="12sp"/>
 
     </LinearLayout>

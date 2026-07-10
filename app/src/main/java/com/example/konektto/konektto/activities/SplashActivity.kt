@@ -11,6 +11,9 @@ import com.example.konektto.R
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
+        supportActionBar?.hide()
+
         setContentView(R.layout.activity_splash)
 
                 Handler(Looper.getMainLooper()).postDelayed({

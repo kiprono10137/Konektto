@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
 
     <application
         android:allowBackup="true"
@@ -13,21 +15,42 @@
         android:theme="@style/Theme.Konektto">
 
         <activity
+
             android:name="com.example.konektto.konektto.activities.SplashActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Konektto"
+            android:label="">
+
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
         </activity>
 
-        <activity android:name="com.example.konektto.konektto.activities.MainActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.LoginActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.RegisterActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.CreateRoomActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.ChatActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.ProfileActivity" />
-        <activity android:name="com.example.konektto.konektto.activities.RoomDashboardActivity" />
+        <activity android:name="com.example.konektto.konektto.activities.MainActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.LoginActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.RegisterActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.CreateRoomActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.ChatActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.ProfileActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.RoomDashboardActivity"/>
+        <activity android:name=".konektto.activities.MembersActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.UserProfileActivity"/>
+
+        <!-- Add this -->
+        <activity android:name="com.example.konektto.konektto.activities.EditProfileActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.MyRoomsActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.SettingsActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.CommunityAdminActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.EditCommunityActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.AnnouncementActivity"/>
+        <activity android:name="com.example.konektto.konektto.activities.PrivateChatActivity"/>
+
+
+
+
+
     </application>
 
 </manifest>

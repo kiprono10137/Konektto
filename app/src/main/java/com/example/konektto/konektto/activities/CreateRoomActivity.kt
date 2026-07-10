@@ -1,8 +1,10 @@
 package com.example.konektto.konektto.activities
 
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.konektto.R
@@ -14,81 +16,129 @@ class CreateRoomActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
 
+    private lateinit var etRoomName: EditText
+    private lateinit var etRoomDescription: EditText
+    private lateinit var spCategory: Spinner
+    private lateinit var btnCreateRoom: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_room)
+        supportActionBar?.hide()
 
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        val etRoomName = findViewById<EditText>(R.id.etRoomName)
-        val etRoomDescription = findViewById<EditText>(R.id.etRoomDescription)
-        val btnCreateRoom = findViewById<Button>(R.id.btnCreateRoom)
+        etRoomName = findViewById(R.id.etRoomName)
+        etRoomDescription = findViewById(R.id.etRoomDescription)
+        spCategory = findViewById(R.id.spCategory)
+        btnCreateRoom = findViewById(R.id.btnCreateRoom)
+
+        val categories = arrayOf(
+            "Football",
+            "Gaming",
+            "Music",
+            "Programming",
+            "Technology",
+            "Business",
+            "Fashion",
+            "Movies",
+            "Relationships",
+            "Education",
+            "General"
+        )
+
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            categories
+        )
+
+        spCategory.adapter = adapter
 
         btnCreateRoom.setOnClickListener {
 
-            Toast.makeText(this, "1. Button clicked", Toast.LENGTH_SHORT).show()
+            createRoom()
 
-            val roomName = etRoomName.text.toString().trim()
-            val roomDescription = etRoomDescription.text.toString().trim()
-
-            if (roomName.isEmpty()) {
-                etRoomName.error = "Room name is required"
-etRoomName.requestFocus()
-                return@setOnClickListener
-            }
-
-            if (roomDescription.isEmpty()) {
-                etRoomDescription.error = "Room description is required"
-                etRoomDescription.requestFocus()
-                return@setOnClickListener
-            }
-
-            Toast.makeText(this, "2. Inputs OK", Toast.LENGTH_SHORT).show()
-
-            val currentUser = auth.currentUser
-
-            if (currentUser == null) {
-                Toast.makeText(this, "User not logged in!", Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-
-            Toast.makeText(this, "3. User Found", Toast.LENGTH_SHORT).show()
-
-            val roomRef = db.collection("rooms").document()
-
-            val roomData = hashMapOf(
-                "roomId" to roomRef.id,
-                "roomName" to roomName,
-                "roomDescription" to roomDescription,
-                "creatorId" to currentUser.uid,
-                "createdAt" to System.currentTimeMillis(),
-                "memberCount" to 1
-            )
-
-            Toast.makeText(this, "4. Saving...", Toast.LENGTH_SHORT).show()
-
-            roomRef.set(roomData)
-                .addOnSuccessListener {
-
-                    Toast.makeText(
-                        this,
-                        "Room created successfully!",
-                        Toast.LENGTH_LONG
-                    ).show()
-
-                    finish()
-                }
-                .addOnFailureListener { e ->
-
-                    Toast.makeText(
-                        this,
-                        "Firestore Error:\n${e.localizedMessage}",
-                        Toast.LENGTH_LONG
-                    ).show()
-
-                    e.printStackTrace()
-                }
         }
+    }
+
+    private fun createRoom() {
+
+        val roomName = etRoomName.text.toString().trim()
+        val roomDescription = etRoomDescription.text.toString().trim()
+        val category = spCategory.selectedItem.toString()
+
+        if (roomName.isEmpty()) {
+            etRoomName.error = "Room name is required"
+            etRoomName.requestFocus()
+            return
+        }
+
+        if (roomDescription.isEmpty()) {
+            etRoomDescription.error = "Room description is required"
+            etRoomDescription.requestFocus()
+            return
+        }
+
+        val currentUser = auth.currentUser
+
+        if (currentUser == null) {
+
+            Toast.makeText(
+                this,
+                "Please login again.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        db.collection("users")
+            .document(currentUser.uid)
+            .get()
+            .addOnSuccessListener { userDocument ->
+
+                val username =
+                    userDocument.getString("username") ?: "Unknown User"
+
+                val roomRef = db.collection("rooms").document()
+
+                val roomData = hashMapOf(
+
+                    "roomId" to roomRef.id,
+                    "roomName" to roomName,
+                    "roomDescription" to roomDescription,
+                    "category" to category,
+                    "creatorId" to currentUser.uid,
+                    "creatorUsername" to username,
+                    "createdAt" to System.currentTimeMillis(),
+                    "memberCount" to 1
+
+                )
+
+                roomRef.set(roomData)
+                    .addOnSuccessListener {
+
+                        Toast.makeText(
+                            this,
+                            "Community created successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        finish()
+
+                    }
+                    .addOnFailureListener { e ->
+
+                        Toast.makeText(
+                            this,
+                            e.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+
+            }
     }
 }

@@ -17,6 +17,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+        supportActionBar?.hide()
+
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
 
         // Show Home when the app opens

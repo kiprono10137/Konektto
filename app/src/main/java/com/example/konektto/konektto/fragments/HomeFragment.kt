@@ -48,17 +48,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val txtWelcome = view.findViewById<TextView>(R.id.txtWelcome)
 
-        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val currentUser = FirebaseAuth.getInstance().currentUser ?: return
 
         db.collection("users")
-            .document(user.uid)
+            .document(currentUser.uid)
             .get()
             .addOnSuccessListener { document ->
 
-                if (document.exists()) {
-                    val username = document.getString("username")
-                    txtWelcome.text = "Welcome back, $username!"
-                }
+                val username = document.getString("username") ?: "User"
+                txtWelcome.text = "Welcome back, $username!"
 
             }
     }
@@ -79,6 +77,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
 
                 adapter.notifyDataSetChanged()
+
             }
             .addOnFailureListener { e ->
 
@@ -96,11 +95,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val currentUser = FirebaseAuth.getInstance().currentUser
 
         if (currentUser == null) {
+
             Toast.makeText(
                 requireContext(),
                 "Please log in again.",
                 Toast.LENGTH_SHORT
             ).show()
+
             return
         }
 
@@ -136,25 +137,46 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun joinRoom(room: Room, userId: String) {
 
-        val memberData = hashMapOf(
-            "joinedAt" to System.currentTimeMillis()
-        )
-
-        db.collection("rooms")
-            .document(room.roomId)
-            .collection("members")
+        db.collection("users")
             .document(userId)
-            .set(memberData)
-            .addOnSuccessListener {
+            .get()
+            .addOnSuccessListener { userDocument ->
+
+                val username =
+                    userDocument.getString("username") ?: "Unknown User"
+
+                val memberData = hashMapOf(
+                    "userId" to userId,
+                    "username" to username,
+                    "joinedAt" to System.currentTimeMillis()
+                )
 
                 db.collection("rooms")
                     .document(room.roomId)
-                    .update(
-                        "memberCount",
-                        room.memberCount + 1
-                    )
+                    .collection("members")
+                    .document(userId)
+                    .set(memberData)
+                    .addOnSuccessListener {
 
-                openRoomDashboard(room)
+                        db.collection("rooms")
+                            .document(room.roomId)
+                            .update(
+                                "memberCount",
+                                room.memberCount + 1
+                            )
+
+                        openRoomDashboard(room)
+
+                    }
+                    .addOnFailureListener { e ->
+
+                        Toast.makeText(
+                            requireContext(),
+                            e.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
 
             }
             .addOnFailureListener { e ->
