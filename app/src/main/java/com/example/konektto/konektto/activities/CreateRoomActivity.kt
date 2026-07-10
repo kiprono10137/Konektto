@@ -120,13 +120,27 @@ class CreateRoomActivity : AppCompatActivity() {
                 roomRef.set(roomData)
                     .addOnSuccessListener {
 
-                        Toast.makeText(
-                            this,
-                            "Community created successfully!",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Add the creator as the first member
+                        val memberData = hashMapOf(
+                            "userId" to currentUser.uid,
+                            "username" to username,
+                            "joinedAt" to System.currentTimeMillis()
+                        )
 
-                        finish()
+                        roomRef.collection("members")
+                            .document(currentUser.uid)
+                            .set(memberData)
+                            .addOnSuccessListener {
+
+                                Toast.makeText(
+                                    this,
+                                    "Community created successfully!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                finish()
+
+                            }
 
                     }
                     .addOnFailureListener { e ->

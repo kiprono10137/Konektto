@@ -74,6 +74,7 @@ class RoomDashboardActivity : AppCompatActivity() {
 
         loadRoomDetails()
         listenForMessages()
+        loadAnnouncement()
 
         btnSend.setOnClickListener {
             sendMessage()
