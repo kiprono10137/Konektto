@@ -68,4 +68,8 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
+    <!-- Presence indicator: deliberately the same green in both light and dark
+         mode, since "online" should read as one consistent signal everywhere -->
+    <color name="konektto_status_online">#22C55E</color>
+
 </resources>

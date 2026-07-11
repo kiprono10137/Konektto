@@ -6,9 +6,12 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.konektto.R
+import com.example.konektto.konektto.utils.TimeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class UserProfileActivity : AppCompatActivity() {
 
@@ -16,6 +19,7 @@ class UserProfileActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     private lateinit var tvUsername: TextView
+    private lateinit var tvOnlineStatus: TextView
     private lateinit var tvBio: TextView
     private lateinit var tvRoomsJoined: TextView
     private lateinit var tvMessagesSent: TextView
@@ -24,6 +28,7 @@ class UserProfileActivity : AppCompatActivity() {
 
     private lateinit var userId: String
     private var currentUserId: String? = null
+    private var presenceListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +41,7 @@ class UserProfileActivity : AppCompatActivity() {
         currentUserId = auth.currentUser?.uid
 
         tvUsername = findViewById(R.id.tvUsername)
+        tvOnlineStatus = findViewById(R.id.tvOnlineStatus)
         tvBio = findViewById(R.id.tvBio)
         tvRoomsJoined = findViewById(R.id.tvRoomsJoined)
         tvMessagesSent = findViewById(R.id.tvMessagesSent)
@@ -69,8 +75,50 @@ class UserProfileActivity : AppCompatActivity() {
             }
 
             refreshFriendButton()
+            listenForPresence()
 
         }
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        presenceListener?.remove()
+    }
+
+    private fun listenForPresence() {
+
+        presenceListener = db.collection("users")
+            .document(userId)
+            .addSnapshotListener { document, error ->
+
+                if (error != null || document == null || !document.exists()) return@addSnapshotListener
+
+                val isOnline = document.getBoolean("isOnline") ?: false
+                val lastSeen = document.getTimestamp("lastSeen")?.toDate()?.time ?: 0L
+
+                tvOnlineStatus.visibility = View.VISIBLE
+
+                if (isOnline) {
+
+                    tvOnlineStatus.text = "🟢 Online"
+                    tvOnlineStatus.setTextColor(
+                        ContextCompat.getColor(this, R.color.konektto_status_online)
+                    )
+
+                } else {
+
+                    tvOnlineStatus.text = "Last seen ${TimeUtils.formatLastSeen(lastSeen)}"
+                    tvOnlineStatus.setTextColor(
+                        com.google.android.material.color.MaterialColors.getColor(
+                            tvOnlineStatus,
+                            com.google.android.material.R.attr.colorOnSurfaceVariant
+                        )
+                    )
+
+                }
+
+            }
 
     }
 

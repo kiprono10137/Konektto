@@ -78,6 +78,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         btnLogout.setOnClickListener {
 
+            com.example.konektto.konektto.utils.PresenceManager.setOfflineImmediately()
+
             auth.signOut()
 
             val intent = Intent(

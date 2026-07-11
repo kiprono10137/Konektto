@@ -1,6 +1,7 @@
 package com.example.konektto.konektto.activities
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -11,12 +12,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.adapters.PrivateMessageAdapter
 import com.example.konektto.konektto.models.PrivateMessage
+import com.example.konektto.konektto.utils.TimeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class PrivateChatActivity : AppCompatActivity() {
 
     private lateinit var tvReceiver: TextView
+    private lateinit var tvReceiverStatus: TextView
     private lateinit var rvMessages: RecyclerView
     private lateinit var etMessage: EditText
     private lateinit var btnSend: Button
@@ -30,6 +34,8 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var receiverId: String
     private lateinit var chatId: String
 
+    private var presenceListener: ListenerRegistration? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_private_chat)
@@ -37,6 +43,7 @@ class PrivateChatActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         tvReceiver = findViewById(R.id.tvReceiver)
+        tvReceiverStatus = findViewById(R.id.tvReceiverStatus)
         rvMessages = findViewById(R.id.rvPrivateMessages)
         etMessage = findViewById(R.id.etPrivateMessage)
         btnSend = findViewById(R.id.btnSendPrivate)
@@ -61,12 +68,41 @@ class PrivateChatActivity : AppCompatActivity() {
 
         loadReceiverName()
         listenForMessages()
+        listenForPresence()
 
         btnSend.setOnClickListener {
 
             sendMessage()
 
         }
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        presenceListener?.remove()
+    }
+
+    private fun listenForPresence() {
+
+        presenceListener = db.collection("users")
+            .document(receiverId)
+            .addSnapshotListener { document, error ->
+
+                if (error != null || document == null || !document.exists()) return@addSnapshotListener
+
+                val isOnline = document.getBoolean("isOnline") ?: false
+                val lastSeen = document.getTimestamp("lastSeen")?.toDate()?.time ?: 0L
+
+                tvReceiverStatus.visibility = View.VISIBLE
+
+                tvReceiverStatus.text = if (isOnline) {
+                    "🟢 Online"
+                } else {
+                    "Last seen ${TimeUtils.formatLastSeen(lastSeen)}"
+                }
+
+            }
 
     }
     private fun generateChatId(

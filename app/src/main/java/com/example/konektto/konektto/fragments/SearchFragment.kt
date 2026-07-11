@@ -181,7 +181,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                         uid = document.id,
                         username = document.getString("username") ?: "",
                         bio = document.getString("bio") ?: "",
-                        profileImage = document.getString("profileImage") ?: ""
+                        profileImage = document.getString("profileImage") ?: "",
+                        isOnline = document.getBoolean("isOnline") ?: false,
+                        lastSeen = document.getTimestamp("lastSeen")?.toDate()?.time ?: 0L
                     )
 
                     allUsers.add(user)

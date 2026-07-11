@@ -21,6 +21,9 @@ class UserAdapter(
         val imgAvatar: ImageView =
             itemView.findViewById(R.id.imgUserAvatar)
 
+        val viewOnlineDot: View =
+            itemView.findViewById(R.id.viewOnlineDot)
+
         val tvUsername: TextView =
             itemView.findViewById(R.id.tvUserName)
 
@@ -63,6 +66,9 @@ class UserAdapter(
 
         holder.tvBio.text =
             user.bio.ifBlank { "No bio yet." }
+
+        holder.viewOnlineDot.visibility =
+            if (user.isOnline) View.VISIBLE else View.GONE
 
         if (user.profileImage.isNotBlank()) {
 
