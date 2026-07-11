@@ -6,6 +6,7 @@ data class PrivateMessage(
     val senderId: String = "",
     val receiverId: String = "",
     val text: String = "",
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val read: Boolean = false
 
 )
