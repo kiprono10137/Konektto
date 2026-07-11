@@ -101,7 +101,7 @@ class PrivateMessageAdapter(
 
         if (isMine) {
 
-            bubbleColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorPrimary)
+            bubbleColor = MaterialColors.getColor(holder.cardMessage, android.R.attr.colorPrimary)
             textColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorOnPrimary)
 
         } else {
