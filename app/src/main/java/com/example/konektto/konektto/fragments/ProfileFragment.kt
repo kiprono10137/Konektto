@@ -36,12 +36,19 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         tvUsername = view.findViewById(R.id.tvUsername)
         tvEmail = view.findViewById(R.id.tvEmail)
 
+        val btnChangePhoto = view.findViewById<Button>(R.id.btnChangePhoto)
         val btnEditProfile = view.findViewById<Button>(R.id.btnEditProfile)
         val btnMyRooms = view.findViewById<Button>(R.id.btnMyRooms)
         val btnSettings = view.findViewById<Button>(R.id.btnSettings)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
 
         loadProfile()
+
+        btnChangePhoto.setOnClickListener {
+            startActivity(
+                Intent(requireContext(), EditProfileActivity::class.java)
+            )
+        }
 
         btnEditProfile.setOnClickListener {
             startActivity(

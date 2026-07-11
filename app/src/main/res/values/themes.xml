@@ -31,7 +31,16 @@
 
         <item name="android:statusBarColor">@color/konektto_surface_light</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowAnimationStyle">@style/Konektto.WindowAnimation</item>
 
+    </style>
+
+    <!-- App-wide activity transition animations (slide + fade) -->
+    <style name="Konektto.WindowAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
     </style>
 
     <!-- Reusable circular shape for avatar images across the app -->
