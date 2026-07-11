@@ -1,0 +1,214 @@
+rules_version = '2';
+
+// Konektto Firestore security rules.
+//
+// Replaces the previous policy (allow read, write: if request.auth != null
+// on {document=**}) -- which meant any signed-in user could read or write
+// ANY document in the entire database, including other people's profiles,
+// other rooms' messages, private chats they weren't part of, etc. Every
+// rule below is derived directly from reading the actual client code
+// (activities/adapters/utils) across the whole app, not guessed.
+//
+// One known, important tradeoff worth understanding before deploying this:
+// UserProfileActivity.loadMessagesSent() runs a collectionGroup("messages")
+// query to count how many messages a profile's owner has sent, across
+// BOTH rooms/*/messages and privateChats/*/messages (both subcollections
+// happen to share the name "messages"). Firestore evaluates security
+// rules per-document even for collectionGroup queries, using whichever
+// rule matches that document's actual full path -- so this query will
+// now silently return fewer results than before: only messages in rooms
+// the VIEWER (not the profile owner) belongs to, and private chats the
+// VIEWER is part of. This isn't a bug in these rules; it's an inherent
+// Firestore limitation once per-document security exists at all. Fixing
+// it properly would mean a Cloud-Function-maintained denormalized
+// messageCount field on the user doc, not a rules change -- out of scope
+// for this pass, but worth knowing the "Messages Sent" stat may undercount
+// after this deploys.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Shared helper functions ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(roomId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid));
+    }
+
+    function roleIn(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function isOwner(roomId) {
+      return isMember(roomId) && roleIn(roomId) == 'owner';
+    }
+
+    function isModerator(roomId) {
+      return isMember(roomId) && roleIn(roomId) == 'moderator';
+    }
+
+    function isOwnerOrModerator(roomId) {
+      return isOwner(roomId) || isModerator(roomId);
+    }
+
+    // ---------- users/{userId} ----------
+    // Profile info (username, bio, profileImage), presence (isOnline,
+    // lastSeen), and the FCM push token all live here. Any signed-in user
+    // can read any profile (search, member lists, chat headers, friend
+    // requests all depend on this) and can list the whole collection
+    // (SearchFragment's user search does a full collection read, filtered
+    // client-side -- an existing, intentional part of how search works,
+    // not a gap introduced here). Only the account owner can ever write
+    // their own doc.
+
+    match /users/{userId} {
+
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      // No account-deletion feature exists in the app; omitting a delete
+      // rule means deletion is denied by default.
+
+    }
+
+    // ---------- rooms/{roomId} ----------
+
+    match /rooms/{roomId} {
+
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn() &&
+        request.resource.data.creatorId == request.auth.uid;
+
+      allow update: if isSignedIn() && (
+        // memberCount needs to move by +/-1 from *any* signed-in user --
+        // the person joining isn't a member yet at the moment they
+        // increment it, and someone leaving is removing their own
+        // membership in the same action. Restricting this to
+        // owner/moderator would break ordinary joining and leaving.
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) ||
+
+        // Everything else on a room doc (announcement, pinned message,
+        // room name/description edits) is owner/moderator territory.
+        // Known simplification: this grants moderators slightly broader
+        // write latitude on the room document than the client UI
+        // currently exposes to them (e.g. CommunityAdminActivity's
+        // rename/delete flows are owner-only in the UI, but this rule
+        // doesn't separately distinguish which specific fields a
+        // moderator vs an owner may touch). A full field-by-field
+        // permission matrix is possible but felt like real added
+        // complexity for a marginal security gain here.
+        isOwnerOrModerator(roomId)
+      );
+
+      allow delete: if isOwner(roomId);
+
+      // ---------- rooms/{roomId}/members/{memberId} ----------
+
+      match /members/{memberId} {
+
+        allow read: if isSignedIn();
+
+        allow create: if isSignedIn() && request.auth.uid == memberId && (
+          // Joining as an ordinary member -- never allowed to self-assign
+          // a higher role than that.
+          request.resource.data.role == 'member' ||
+
+          // The room's creator gets to create their own member doc as
+          // 'owner', but only if the room doc itself actually says they're
+          // the creator -- not just self-asserted in the write.
+          (request.resource.data.role == 'owner' &&
+           get(/databases/$(database)/documents/rooms/$(roomId)).data.creatorId == request.auth.uid)
+        );
+
+        allow update: if isOwner(roomId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']);
+
+        allow delete: if isSignedIn() && (
+          request.auth.uid == memberId ||       // leaving voluntarily
+          isOwner(roomId) ||                    // owner removes anyone
+          (isModerator(roomId) && resource.data.role == 'member') // mod removes plain members only
+        );
+
+      }
+
+      // ---------- rooms/{roomId}/messages/{messageId} ----------
+      // No update rule exists here on purpose -- there's no message-edit
+      // feature anywhere in the app, so messages are immutable once sent
+      // (aside from deletion).
+
+      match /messages/{messageId} {
+
+        allow read: if isMember(roomId);
+
+        allow create: if isMember(roomId) &&
+          request.resource.data.senderId == request.auth.uid;
+
+        allow delete: if isSignedIn() && (
+          resource.data.senderId == request.auth.uid ||
+          isOwnerOrModerator(roomId)
+        );
+
+      }
+
+    }
+
+    // ---------- privateChats/{chatId} ----------
+    // chatId is always the two participants' UIDs, sorted alphabetically
+    // and joined with "_" (see generateChatId() in PrivateChatActivity).
+    // That convention means participation can be checked directly from
+    // the document ID itself, without needing to read the document first --
+    // useful since a chat doc may not exist yet the first time two people
+    // start typing to each other.
+
+    match /privateChats/{chatId} {
+
+      function isParticipant() {
+        return isSignedIn() && request.auth.uid in chatId.split('_');
+      }
+
+      allow read, write: if isParticipant();
+
+      match /messages/{messageId} {
+
+        allow read: if isParticipant();
+
+        allow create: if isParticipant() &&
+          request.resource.data.senderId == request.auth.uid;
+
+        // Read receipts: the only thing ever changed post-creation is
+        // the 'read' field.
+        allow update: if isParticipant() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      }
+
+    }
+
+    // ---------- friendRequests/{requestId} ----------
+    // Same sorted-UID-pair convention as chatId (see generateRequestId()
+    // in UserProfileActivity).
+
+    match /friendRequests/{requestId} {
+
+      function isParticipant() {
+        return isSignedIn() && request.auth.uid in requestId.split('_');
+      }
+
+      allow read: if isParticipant();
+
+      allow create: if isParticipant() &&
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      allow update: if isParticipant(); // accepting a request
+      allow delete: if isParticipant(); // declining, or unfriending later
+
+    }
+
+  }
+}
