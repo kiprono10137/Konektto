@@ -92,10 +92,16 @@ exports.onPrivateMessageCreated = onDocumentCreated(
 
     const senderName = await getUsername(message.senderId);
 
+    // Attachment-only messages have an empty text field -- a blank
+    // notification body would tell the recipient nothing useful.
+    const body = message.text && message.text.trim().length > 0
+      ? message.text
+      : attachmentPreviewText(message.attachmentType);
+
     await sendPushToUser(
       message.receiverId,
       senderName,
-      message.text,
+      body,
       {
         type: "private_message",
         senderId: message.senderId,
@@ -105,6 +111,16 @@ exports.onPrivateMessageCreated = onDocumentCreated(
 
   },
 );
+
+function attachmentPreviewText(attachmentType) {
+  switch (attachmentType) {
+    case "image": return "📷 Photo";
+    case "gif": return "GIF";
+    case "audio": return "🎤 Voice note";
+    case "file": return "📎 File";
+    default: return "New message";
+  }
+}
 
 exports.onFriendRequestCreated = onDocumentCreated(
   "friendRequests/{requestId}",

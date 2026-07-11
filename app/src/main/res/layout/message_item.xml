@@ -24,6 +24,90 @@
             android:textStyle="bold"
             android:textSize="15sp"/>
 
+        <!-- Image / GIF attachment -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgAttachment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:adjustViewBounds="true"
+            android:maxWidth="260dp"
+            android:maxHeight="280dp"
+            android:scaleType="fitCenter"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Konektto.RoundedMedia"
+            android:visibility="gone"/>
+
+        <!-- Audio attachment -->
+        <LinearLayout
+            android:id="@+id/audioPlayerRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnPlayAudio"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="▶"/>
+
+            <TextView
+                android:id="@+id/tvAudioDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="0:00"
+                android:textSize="14sp"/>
+
+        </LinearLayout>
+
+        <!-- Generic file attachment -->
+        <LinearLayout
+            android:id="@+id/fileCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📄"
+                android:textSize="24sp"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvFileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="180dp"
+                    android:maxLines="1"
+                    android:ellipsize="middle"
+                    android:text="file.pdf"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvFileSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 KB"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="match_parent"

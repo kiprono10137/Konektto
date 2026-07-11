@@ -1,18 +1,22 @@
 package com.example.konektto.konektto.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.adapters.MessageAdapter
+import com.example.konektto.konektto.fragments.AttachmentPickerSheet
 import com.example.konektto.konektto.models.Message
+import com.example.konektto.konektto.utils.AttachmentUploader
+import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -26,9 +30,10 @@ class RoomDashboardActivity : AppCompatActivity() {
     private lateinit var tvAnnouncement: TextView
 
     private lateinit var rvMessages: RecyclerView
-    private lateinit var etMessage: EditText
+    private lateinit var etMessage: GifSupportEditText
 
     private lateinit var btnSend: Button
+    private lateinit var btnAttach: Button
     private lateinit var btnViewMembers: Button
     private lateinit var btnLeaveRoom: Button
     private lateinit var btnAdminPanel: Button
@@ -39,6 +44,11 @@ class RoomDashboardActivity : AppCompatActivity() {
     private val messageList = mutableListOf<Message>()
 
     private lateinit var roomId: String
+
+    private val imagePicker =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sendImageOrGifAttachment(it) }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +67,7 @@ class RoomDashboardActivity : AppCompatActivity() {
         etMessage = findViewById(R.id.etMessage)
 
         btnSend = findViewById(R.id.btnSend)
+        btnAttach = findViewById(R.id.btnAttach)
         btnViewMembers = findViewById(R.id.btnViewMembers)
         btnLeaveRoom = findViewById(R.id.btnLeaveRoom)
         btnAdminPanel = findViewById(R.id.btnAdminPanel)
@@ -78,6 +89,24 @@ class RoomDashboardActivity : AppCompatActivity() {
 
         btnSend.setOnClickListener {
             sendMessage()
+        }
+
+        btnAttach.setOnClickListener {
+
+            AttachmentPickerSheet(
+                onPickImage = { imagePicker.launch("image/*") },
+                onPickVoiceNote = {
+                    Toast.makeText(this, "Voice notes coming soon!", Toast.LENGTH_SHORT).show()
+                },
+                onPickFile = {
+                    Toast.makeText(this, "File sharing coming soon!", Toast.LENGTH_SHORT).show()
+                }
+            ).show(supportFragmentManager, "attachment_picker")
+
+        }
+
+        etMessage.onContentCommitted = { uri, _ ->
+            sendImageOrGifAttachment(uri)
         }
 
         btnViewMembers.setOnClickListener {
@@ -226,6 +255,105 @@ class RoomDashboardActivity : AppCompatActivity() {
 
         }
 
+        withCurrentUsername { uid, username ->
+
+            val messageRef = db.collection("rooms")
+                .document(roomId)
+                .collection("messages")
+                .document()
+
+            val message = Message(
+                messageId = messageRef.id,
+                senderId = uid,
+                senderName = username,
+                text = text,
+                timestamp = System.currentTimeMillis()
+            )
+
+            messageRef.set(message)
+                .addOnSuccessListener {
+
+                    etMessage.text.clear()
+
+                }
+                .addOnFailureListener { e ->
+
+                    Toast.makeText(
+                        this,
+                        e.localizedMessage,
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                }
+
+        }
+
+    }
+
+    /**
+     * A GIF from the keyboard and a photo from the gallery are, from here
+     * on, identical: both are just a Uri that needs uploading and a
+     * message that needs sending. AttachmentUploader already tells the
+     * two apart internally by MIME type.
+     */
+    private fun sendImageOrGifAttachment(uri: Uri) {
+
+        Toast.makeText(this, "Sending...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadImageOrGif(this, uri) { url ->
+
+            if (url == null) {
+
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadImageOrGif
+
+            }
+
+            val mimeType = contentResolver.getType(uri) ?: ""
+            val attachmentType = if (mimeType == "image/gif") "gif" else "image"
+
+            withCurrentUsername { uid, username ->
+
+                val messageRef = db.collection("rooms")
+                    .document(roomId)
+                    .collection("messages")
+                    .document()
+
+                val message = Message(
+                    messageId = messageRef.id,
+                    senderId = uid,
+                    senderName = username,
+                    text = "",
+                    timestamp = System.currentTimeMillis(),
+                    attachmentType = attachmentType,
+                    attachmentUrl = url
+                )
+
+                messageRef.set(message)
+                    .addOnFailureListener { e ->
+
+                        Toast.makeText(
+                            this,
+                            e.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+
+            }
+
+        }
+
+    }
+
+    /**
+     * Every send path (text, image, gif, and eventually voice/file) needs
+     * the sender's current username looked up first -- pulling that into
+     * one helper instead of repeating the same Firestore lookup + null
+     * checks in every send function.
+     */
+    private fun withCurrentUsername(action: (uid: String, username: String) -> Unit) {
+
         val currentUser = FirebaseAuth.getInstance().currentUser
 
         if (currentUser == null) {
@@ -248,34 +376,7 @@ class RoomDashboardActivity : AppCompatActivity() {
                 val username =
                     document.getString("username") ?: "Anonymous"
 
-                val messageRef = db.collection("rooms")
-                    .document(roomId)
-                    .collection("messages")
-                    .document()
-
-                val message = Message(
-                    messageId = messageRef.id,
-                    senderId = currentUser.uid,
-                    senderName = username,
-                    text = text,
-                    timestamp = System.currentTimeMillis()
-                )
-
-                messageRef.set(message)
-                    .addOnSuccessListener {
-
-                        etMessage.text.clear()
-
-                    }
-                    .addOnFailureListener { e ->
-
-                        Toast.makeText(
-                            this,
-                            e.localizedMessage,
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                    }
+                action(currentUser.uid, username)
 
             }
             .addOnFailureListener { e ->

@@ -1,5 +1,6 @@
 package com.example.konektto.konektto.activities
 
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -7,16 +8,19 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.adapters.PrivateMessageAdapter
+import com.example.konektto.konektto.fragments.AttachmentPickerSheet
 import com.example.konektto.konektto.models.PrivateMessage
+import com.example.konektto.konektto.utils.AttachmentUploader
 import com.example.konektto.konektto.utils.TimeUtils
+import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -27,8 +31,9 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var tvReceiver: TextView
     private lateinit var tvReceiverStatus: TextView
     private lateinit var rvMessages: RecyclerView
-    private lateinit var etMessage: EditText
+    private lateinit var etMessage: GifSupportEditText
     private lateinit var btnSend: Button
+    private lateinit var btnAttach: Button
 
     private lateinit var adapter: PrivateMessageAdapter
     private lateinit var db: FirebaseFirestore
@@ -56,6 +61,11 @@ class PrivateChatActivity : AppCompatActivity() {
         setTypingStatus(false)
     }
 
+    private val imagePicker =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sendImageOrGifAttachment(it) }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_private_chat)
@@ -67,6 +77,7 @@ class PrivateChatActivity : AppCompatActivity() {
         rvMessages = findViewById(R.id.rvPrivateMessages)
         etMessage = findViewById(R.id.etPrivateMessage)
         btnSend = findViewById(R.id.btnSendPrivate)
+        btnAttach = findViewById(R.id.btnAttachPrivate)
 
         db = FirebaseFirestore.getInstance()
 
@@ -125,6 +136,24 @@ class PrivateChatActivity : AppCompatActivity() {
 
             sendMessage()
 
+        }
+
+        btnAttach.setOnClickListener {
+
+            AttachmentPickerSheet(
+                onPickImage = { imagePicker.launch("image/*") },
+                onPickVoiceNote = {
+                    Toast.makeText(this, "Voice notes coming soon!", Toast.LENGTH_SHORT).show()
+                },
+                onPickFile = {
+                    Toast.makeText(this, "File sharing coming soon!", Toast.LENGTH_SHORT).show()
+                }
+            ).show(supportFragmentManager, "attachment_picker")
+
+        }
+
+        etMessage.onContentCommitted = { uri, _ ->
+            sendImageOrGifAttachment(uri)
         }
 
     }
@@ -363,12 +392,77 @@ class PrivateChatActivity : AppCompatActivity() {
             read = false
         )
 
+        writeMessage(messageRef, message, text) {
+            etMessage.text.clear()
+        }
+
+    }
+
+    /**
+     * A GIF from the keyboard and a photo from the gallery arrive through
+     * completely different Android APIs, but from here on they're
+     * identical: both are just a Uri that needs uploading and a message
+     * that needs sending. AttachmentUploader already tells the two apart
+     * internally (by MIME type), so this one function covers both.
+     */
+    private fun sendImageOrGifAttachment(uri: Uri) {
+
+        Toast.makeText(this, "Sending...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadImageOrGif(this, uri) { url ->
+
+            if (url == null) {
+
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadImageOrGif
+
+            }
+
+            val mimeType = contentResolver.getType(uri) ?: ""
+            val attachmentType = if (mimeType == "image/gif") "gif" else "image"
+
+            val messageRef = db.collection("privateChats")
+                .document(chatId)
+                .collection("messages")
+                .document()
+
+            val message = PrivateMessage(
+                messageId = messageRef.id,
+                senderId = currentUserId,
+                receiverId = receiverId,
+                text = "",
+                timestamp = System.currentTimeMillis(),
+                read = false,
+                attachmentType = attachmentType,
+                attachmentUrl = url
+            )
+
+            writeMessage(messageRef, message, if (attachmentType == "gif") "GIF" else "📷 Photo")
+
+        }
+
+    }
+
+    /**
+     * Shared by every send path (text, image, gif, and eventually voice/file):
+     * write the message doc, then merge-update the parent chat doc's
+     * lastMessage/lastTimestamp so the (future) chat list preview and any
+     * push notification copy have something sensible to show, whether the
+     * message was text or an attachment.
+     */
+    private fun writeMessage(
+        messageRef: com.google.firebase.firestore.DocumentReference,
+        message: PrivateMessage,
+        previewText: String,
+        onSent: () -> Unit = {}
+    ) {
+
         messageRef.set(message)
             .addOnSuccessListener {
 
                 val chatData = hashMapOf<String, Any>(
                     "participants" to listOf(currentUserId, receiverId),
-                    "lastMessage" to text,
+                    "lastMessage" to previewText,
                     "lastTimestamp" to System.currentTimeMillis()
                 )
 
@@ -379,10 +473,10 @@ class PrivateChatActivity : AppCompatActivity() {
                     .document(chatId)
                     .set(chatData, SetOptions.merge())
 
-                etMessage.text.clear()
-
                 typingHandler.removeCallbacks(stopTypingRunnable)
                 setTypingStatus(false)
+
+                onSent()
 
             }
             .addOnFailureListener { e ->

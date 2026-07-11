@@ -48,4 +48,9 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <!-- Rounded corners for chat media attachments (images/gifs) -->
+    <style name="ShapeAppearanceOverlay.Konektto.RoundedMedia">
+        <item name="cornerSize">12dp</item>
+    </style>
+
 </resources>

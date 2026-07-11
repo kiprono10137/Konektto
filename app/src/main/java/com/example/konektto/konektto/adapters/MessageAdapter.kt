@@ -1,11 +1,16 @@
 package com.example.konektto.konektto.adapters
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.konektto.R
 import com.example.konektto.konektto.models.Message
 import com.google.firebase.auth.FirebaseAuth
@@ -28,6 +33,27 @@ class MessageAdapter(
 
         val tvTime: TextView =
             itemView.findViewById(R.id.tvTime)
+
+        val imgAttachment: ImageView =
+            itemView.findViewById(R.id.imgAttachment)
+
+        val audioPlayerRow: View =
+            itemView.findViewById(R.id.audioPlayerRow)
+
+        val btnPlayAudio: Button =
+            itemView.findViewById(R.id.btnPlayAudio)
+
+        val tvAudioDuration: TextView =
+            itemView.findViewById(R.id.tvAudioDuration)
+
+        val fileCard: View =
+            itemView.findViewById(R.id.fileCard)
+
+        val tvFileName: TextView =
+            itemView.findViewById(R.id.tvFileName)
+
+        val tvFileSize: TextView =
+            itemView.findViewById(R.id.tvFileSize)
 
         init {
 
@@ -86,7 +112,50 @@ class MessageAdapter(
         val message = messageList[position]
 
         holder.tvSenderName.text = message.senderName
-        holder.tvMessage.text = message.text
+
+        // Hard reset every attachment slot on every bind -- a recycled
+        // view showing a stale image/file/audio row from whatever message
+        // previously occupied it is a real RecyclerView bug, not a
+        // hypothetical one.
+        holder.imgAttachment.visibility = View.GONE
+        holder.audioPlayerRow.visibility = View.GONE
+        holder.fileCard.visibility = View.GONE
+
+        when (message.attachmentType) {
+
+            "image", "gif" -> {
+
+                holder.imgAttachment.visibility = View.VISIBLE
+
+                Glide.with(holder.imgAttachment.context)
+                    .load(message.attachmentUrl)
+                    .into(holder.imgAttachment)
+
+                holder.imgAttachment.setOnClickListener {
+
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(message.attachmentUrl)
+                    )
+
+                    holder.imgAttachment.context.startActivity(intent)
+
+                }
+
+            }
+
+        }
+
+        if (message.text.isBlank() && message.attachmentType.isNotBlank()) {
+
+            holder.tvMessage.visibility = View.GONE
+
+        } else {
+
+            holder.tvMessage.visibility = View.VISIBLE
+            holder.tvMessage.text = message.text
+
+        }
 
         val sdf =
             SimpleDateFormat("hh:mm a", Locale.getDefault())

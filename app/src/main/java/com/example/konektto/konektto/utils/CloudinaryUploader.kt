@@ -11,16 +11,55 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 object CloudinaryUploader {
 
     private const val CLOUD_NAME = "dayafm4jt"
     private const val UPLOAD_PRESET = "konektto_app"
 
-    private val client = OkHttpClient()
+    // Chat attachments (especially voice notes and files) can be larger
+    // and slower than a profile picture upload; the default OkHttpClient
+    // timeouts are tuned for quick API calls, not multi-second uploads
+    // over a mediocre connection.
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
 
+    /**
+     * Kept for backward compatibility with existing callers
+     * (EditProfileActivity) -- behaves exactly as before.
+     */
     fun uploadImage(
         imageBytes: ByteArray,
+        callback: (String?) -> Unit
+    ) {
+        uploadFile(
+            bytes = imageBytes,
+            filename = "profile.jpg",
+            mimeType = "image/jpeg",
+            resourceType = "image",
+            callback = callback
+        )
+    }
+
+    /**
+     * Generic upload covering everything Phase 4 needs:
+     *  - resourceType "image"  -> photos AND gifs (Cloudinary stores an
+     *                             animated gif as-is under the image
+     *                             resource type; no special handling needed)
+     *  - resourceType "video"  -> Cloudinary's convention for audio files
+     *                             too, not just video -- there is no
+     *                             separate "audio" resource type
+     *  - resourceType "raw"    -> arbitrary documents/files
+     */
+    fun uploadFile(
+        bytes: ByteArray,
+        filename: String,
+        mimeType: String,
+        resourceType: String,
         callback: (String?) -> Unit
     ) {
 
@@ -28,10 +67,8 @@ object CloudinaryUploader {
             .setType(MultipartBody.FORM)
             .addFormDataPart(
                 "file",
-                "profile.jpg",
-                imageBytes.toRequestBody(
-                    "image/jpeg".toMediaType()
-                )
+                filename,
+                bytes.toRequestBody(mimeType.toMediaType())
             )
             .addFormDataPart(
                 "upload_preset",
@@ -40,7 +77,7 @@ object CloudinaryUploader {
             .build()
 
         val request = Request.Builder()
-            .url("https://api.cloudinary.com/v1_1/$CLOUD_NAME/image/upload")
+            .url("https://api.cloudinary.com/v1_1/$CLOUD_NAME/$resourceType/upload")
             .post(requestBody)
             .build()
 
@@ -66,7 +103,6 @@ object CloudinaryUploader {
                     val body = response.body?.string()
 
                     Log.d("Cloudinary", "HTTP Code = ${response.code}")
-                    Log.d("Cloudinary", "Raw Response = $body")
 
                     if (!response.isSuccessful || body == null) {
 
@@ -79,18 +115,8 @@ object CloudinaryUploader {
 
                         val json = JSONObject(body)
 
-                        Log.d(
-                            "Cloudinary",
-                            "Formatted JSON:\n${json.toString(4)}"
-                        )
-
                         val secureUrl =
                             json.optString("secure_url", "")
-
-                        Log.d(
-                            "Cloudinary",
-                            "Secure URL = $secureUrl"
-                        )
 
                         if (secureUrl.isNotEmpty()) {
 
@@ -104,12 +130,7 @@ object CloudinaryUploader {
 
                     } catch (e: Exception) {
 
-                        Log.e(
-                            "Cloudinary",
-                            "JSON Parse Error",
-                            e
-                        )
-
+                        Log.e("Cloudinary", "JSON Parse Error", e)
                         callback(null)
 
                     }

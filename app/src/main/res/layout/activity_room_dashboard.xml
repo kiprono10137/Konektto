@@ -120,11 +120,22 @@
         android:padding="12dp"
         android:background="?attr/colorSurface">
 
-        <EditText
+        <Button
+            android:id="@+id/btnAttach"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="48dp"
+            android:layout_height="56dp"
+            android:minWidth="0dp"
+            android:padding="0dp"
+            android:text="📎"
+            android:textSize="18sp"/>
+
+        <com.example.konektto.konektto.widgets.GifSupportEditText
             android:id="@+id/etMessage"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
+            android:layout_marginStart="8dp"
             android:background="@android:drawable/edit_text"
             android:hint="Message the community..."
             android:textColor="?attr/colorOnSurface"

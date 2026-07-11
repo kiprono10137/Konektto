@@ -1,12 +1,17 @@
 package com.example.konektto.konektto.adapters
 
+import android.content.Intent
+import android.net.Uri
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.konektto.R
 import com.example.konektto.konektto.models.PrivateMessage
 import com.google.android.material.card.MaterialCardView
@@ -34,6 +39,27 @@ class PrivateMessageAdapter(
         val tvReadReceipt: TextView =
             itemView.findViewById(R.id.tvReadReceipt)
 
+        val imgAttachment: ImageView =
+            itemView.findViewById(R.id.imgAttachment)
+
+        val audioPlayerRow: View =
+            itemView.findViewById(R.id.audioPlayerRow)
+
+        val btnPlayAudio: Button =
+            itemView.findViewById(R.id.btnPlayAudio)
+
+        val tvAudioDuration: TextView =
+            itemView.findViewById(R.id.tvAudioDuration)
+
+        val fileCard: View =
+            itemView.findViewById(R.id.fileCard)
+
+        val tvFileName: TextView =
+            itemView.findViewById(R.id.tvFileName)
+
+        val tvFileSize: TextView =
+            itemView.findViewById(R.id.tvFileSize)
+
     }
 
     override fun onCreateViewHolder(
@@ -60,7 +86,54 @@ class PrivateMessageAdapter(
         val message = messages[position]
         val isMine = message.senderId == currentUserId
 
-        holder.tvMessage.text = message.text
+        // Hard reset every attachment slot on every bind. This view may
+        // have just been recycled from a completely different message --
+        // if item #3 was a photo and this view is now showing item #9
+        // (text-only), failing to hide imgAttachment here would leave
+        // item #3's photo visibly stuck on item #9's bubble.
+        holder.imgAttachment.visibility = View.GONE
+        holder.audioPlayerRow.visibility = View.GONE
+        holder.fileCard.visibility = View.GONE
+
+        when (message.attachmentType) {
+
+            "image", "gif" -> {
+
+                holder.imgAttachment.visibility = View.VISIBLE
+
+                Glide.with(holder.imgAttachment.context)
+                    .load(message.attachmentUrl)
+                    .into(holder.imgAttachment)
+
+                holder.imgAttachment.setOnClickListener {
+
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(message.attachmentUrl)
+                    )
+
+                    holder.imgAttachment.context.startActivity(intent)
+
+                }
+
+            }
+
+        }
+
+        // A caption is optional on an attachment, but an attachment isn't
+        // optional on a caption -- if there's no text and no attachment,
+        // something's wrong with the data, but we still shouldn't render
+        // an empty bubble taking up space for no reason.
+        if (message.text.isBlank() && message.attachmentType.isNotBlank()) {
+
+            holder.tvMessage.visibility = View.GONE
+
+        } else {
+
+            holder.tvMessage.visibility = View.VISIBLE
+            holder.tvMessage.text = message.text
+
+        }
 
         val sdf =
             SimpleDateFormat("hh:mm a", Locale.getDefault())
