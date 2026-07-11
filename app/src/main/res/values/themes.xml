@@ -33,6 +33,15 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowAnimationStyle">@style/Konektto.WindowAnimation</item>
 
+        <!-- Bolder, more generous rounded corners app-wide: every
+             MaterialButton and MaterialCardView that doesn't set its own
+             per-instance shape picks this up automatically. This one
+             change is what gives the whole app a distinct, less
+             "default Material" feel without touching every layout file. -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Konektto.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Konektto.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Konektto.LargeComponent</item>
+
     </style>
 
     <!-- App-wide activity transition animations (slide + fade) -->
@@ -41,6 +50,28 @@
         <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
         <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
         <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <!-- Global shape system: small = chips/small buttons, medium = standard
+         buttons/text fields, large = cards/sheets/dialogs. All three
+         explicitly declare parent="": shape appearance styles don't need
+         a real parent, and leaving it implicit is exactly what caused a
+         real build failure earlier in this project (Android infers a
+         parent by stripping the last dot-segment off the name, then fails
+         to link when that inferred parent doesn't actually exist). -->
+    <style name="ShapeAppearance.Konektto.SmallComponent" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Konektto.MediumComponent" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Konektto.LargeComponent" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
     </style>
 
     <!-- Reusable circular shape for avatar images across the app -->

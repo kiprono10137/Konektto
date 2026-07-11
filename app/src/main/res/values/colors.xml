@@ -5,29 +5,45 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Brand primary: blue, matching the accent already used in room_item.xml -->
-    <color name="konektto_primary_light">#2563EB</color>
+    <!-- ============================================================
+         KONEKTTO BRAND IDENTITY: "Aurora"
+         A signature violet -> magenta -> coral gradient, replacing
+         the generic Material blue. This 3-stop gradient is used
+         consistently across both light and dark mode (like the
+         online-status green) since a brand mark shouldn't change
+         identity just because the theme does.
+         ============================================================ -->
+
+    <color name="konektto_gradient_start">#7C3AED</color>  <!-- violet -->
+    <color name="konektto_gradient_mid">#C026D3</color>    <!-- magenta -->
+    <color name="konektto_gradient_end">#FB7185</color>    <!-- coral/rose -->
+
+    <!-- Primary: violet -->
+    <color name="konektto_primary_light">#7C3AED</color>
     <color name="konektto_on_primary_light">#FFFFFF</color>
-    <color name="konektto_primary_container_light">#DBEAFE</color>
-    <color name="konektto_on_primary_container_light">#1E3A8A</color>
+    <color name="konektto_primary_container_light">#EDE4FF</color>
+    <color name="konektto_on_primary_container_light">#4C1D95</color>
 
-    <color name="konektto_primary_dark">#93C5FD</color>
-    <color name="konektto_on_primary_dark">#1E3A8A</color>
-    <color name="konektto_primary_container_dark">#1E40AF</color>
-    <color name="konektto_on_primary_container_dark">#DBEAFE</color>
+    <color name="konektto_primary_dark">#C4B5FD</color>
+    <color name="konektto_on_primary_dark">#3B1877</color>
+    <color name="konektto_primary_container_dark">#5B21B6</color>
+    <color name="konektto_on_primary_container_dark">#EDE4FF</color>
 
-    <!-- Secondary: teal, echoing the original brand's teal accent -->
-    <color name="konektto_secondary_light">#0F766E</color>
+    <!-- Secondary: magenta/pink -->
+    <color name="konektto_secondary_light">#C026D3</color>
     <color name="konektto_on_secondary_light">#FFFFFF</color>
-    <color name="konektto_secondary_container_light">#CCFBF1</color>
-    <color name="konektto_on_secondary_container_light">#134E4A</color>
+    <color name="konektto_secondary_container_light">#FCE4F6</color>
+    <color name="konektto_on_secondary_container_light">#831843</color>
 
-    <color name="konektto_secondary_dark">#5EEAD4</color>
-    <color name="konektto_on_secondary_dark">#134E4A</color>
-    <color name="konektto_secondary_container_dark">#115E59</color>
-    <color name="konektto_on_secondary_container_dark">#CCFBF1</color>
+    <color name="konektto_secondary_dark">#F9A8D4</color>
+    <color name="konektto_on_secondary_dark">#701A46</color>
+    <color name="konektto_secondary_container_dark">#9D2569</color>
+    <color name="konektto_on_secondary_container_dark">#FCE4F6</color>
 
-    <!-- Tertiary: warm amber for highlights/badges -->
+    <!-- Tertiary: kept as warm amber. This is a semantic "warning/
+         announcement" color, deliberately separate from the brand
+         gradient so announcement banners don't compete visually with
+         primary actions -->
     <color name="konektto_tertiary_light">#B45309</color>
     <color name="konektto_on_tertiary_light">#FFFFFF</color>
     <color name="konektto_tertiary_container_light">#FEF3C7</color>
@@ -38,22 +54,26 @@
     <color name="konektto_tertiary_container_dark">#92400E</color>
     <color name="konektto_on_tertiary_container_dark">#FEF3C7</color>
 
-    <!-- Surfaces / background, matching existing screen backgrounds (#F5F7FB, #111827, #6B7280) -->
-    <color name="konektto_background_light">#F5F7FB</color>
-    <color name="konektto_on_background_light">#111827</color>
+    <!-- Surfaces: violet-tinted neutrals instead of flat gray, so even
+         plain backgrounds carry a whisper of the brand identity -->
+    <color name="konektto_background_light">#F8F6FC</color>
+    <color name="konektto_on_background_light">#1B1625</color>
     <color name="konektto_surface_light">#FFFFFF</color>
-    <color name="konektto_on_surface_light">#111827</color>
-    <color name="konektto_surface_variant_light">#E5E7EB</color>
-    <color name="konektto_on_surface_variant_light">#6B7280</color>
-    <color name="konektto_outline_light">#E5E7EB</color>
+    <color name="konektto_on_surface_light">#1B1625</color>
+    <color name="konektto_surface_variant_light">#EDE7F6</color>
+    <color name="konektto_on_surface_variant_light">#6B647C</color>
+    <color name="konektto_outline_light">#E3DCEF</color>
 
-    <color name="konektto_background_dark">#111827</color>
-    <color name="konektto_on_background_dark">#F3F4F6</color>
-    <color name="konektto_surface_dark">#1F2937</color>
-    <color name="konektto_on_surface_dark">#F3F4F6</color>
-    <color name="konektto_surface_variant_dark">#374151</color>
-    <color name="konektto_on_surface_variant_dark">#9CA3AF</color>
-    <color name="konektto_outline_dark">#374151</color>
+    <!-- Dark mode: true near-black with a violet undertone, not flat
+         gray. This is the difference between "app with a dark mode
+         toggle" and "app designed to be seen in the dark" -->
+    <color name="konektto_background_dark">#0E0C14</color>
+    <color name="konektto_on_background_dark">#F1EEF9</color>
+    <color name="konektto_surface_dark">#18151F</color>
+    <color name="konektto_on_surface_dark">#F1EEF9</color>
+    <color name="konektto_surface_variant_dark">#282433</color>
+    <color name="konektto_on_surface_variant_dark">#A79FBD</color>
+    <color name="konektto_outline_dark">#332E42</color>
 
     <!-- Error -->
     <color name="konektto_error_light">#DC2626</color>
