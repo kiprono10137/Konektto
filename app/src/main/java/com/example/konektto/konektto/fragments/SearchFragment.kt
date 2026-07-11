@@ -11,30 +11,45 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.activities.RoomDashboardActivity
+import com.example.konektto.konektto.activities.UserProfileActivity
 import com.example.konektto.konektto.adapters.RoomAdapter
+import com.example.konektto.konektto.adapters.UserAdapter
 import com.example.konektto.konektto.models.Room
+import com.example.konektto.konektto.models.UserProfile
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var etSearch: EditText
     private lateinit var rvSearchResults: RecyclerView
+    private lateinit var toggleSearchMode: MaterialButtonToggleGroup
 
-    private lateinit var adapter: RoomAdapter
+    private lateinit var roomAdapter: RoomAdapter
+    private lateinit var userAdapter: UserAdapter
     private lateinit var db: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
 
     private val roomList = mutableListOf<Room>()
     private val allRooms = mutableListOf<Room>()
+
+    private val userList = mutableListOf<UserProfile>()
+    private val allUsers = mutableListOf<UserProfile>()
+
+    private var searchingUsers = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         etSearch = view.findViewById(R.id.etSearch)
         rvSearchResults = view.findViewById(R.id.rvSearchResults)
+        toggleSearchMode = view.findViewById(R.id.toggleSearchMode)
 
         db = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
 
-        adapter = RoomAdapter(roomList) { room ->
+        roomAdapter = RoomAdapter(roomList) { room ->
 
             val intent = Intent(requireContext(), RoomDashboardActivity::class.java)
             intent.putExtra("roomId", room.roomId)
@@ -44,10 +59,45 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             startActivity(intent)
         }
 
+        userAdapter = UserAdapter(userList) { user ->
+
+            val intent = Intent(requireContext(), UserProfileActivity::class.java)
+            intent.putExtra("userId", user.uid)
+
+            startActivity(intent)
+        }
+
         rvSearchResults.layoutManager = LinearLayoutManager(requireContext())
-        rvSearchResults.adapter = adapter
+        rvSearchResults.adapter = roomAdapter
 
         loadRooms()
+
+        toggleSearchMode.check(R.id.btnSearchRooms)
+
+        toggleSearchMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
+
+            if (!isChecked) return@addOnButtonCheckedListener
+
+            searchingUsers = checkedId == R.id.btnSearchUsers
+
+            if (searchingUsers) {
+
+                rvSearchResults.adapter = userAdapter
+                etSearch.hint = "Search people..."
+
+                if (allUsers.isEmpty()) {
+                    loadUsers()
+                }
+
+            } else {
+
+                rvSearchResults.adapter = roomAdapter
+                etSearch.hint = "Search communities..."
+
+            }
+
+            etSearch.text.clear()
+        }
 
         etSearch.addTextChangedListener(object : TextWatcher {
 
@@ -64,7 +114,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 before: Int,
                 count: Int
             ) {
-                filterRooms(s.toString())
+                if (searchingUsers) {
+                    filterUsers(s.toString())
+                } else {
+                    filterRooms(s.toString())
+                }
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -88,7 +142,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                     roomList.add(room)
                 }
 
-                adapter.notifyDataSetChanged()
+                roomAdapter.notifyDataSetChanged()
             }
     }
 
@@ -105,6 +159,52 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             }
         }
 
-        adapter.notifyDataSetChanged()
+        roomAdapter.notifyDataSetChanged()
+    }
+
+    private fun loadUsers() {
+
+        val currentUserId = auth.currentUser?.uid
+
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { documents ->
+
+                allUsers.clear()
+                userList.clear()
+
+                for (document in documents) {
+
+                    if (document.id == currentUserId) continue
+
+                    val user = UserProfile(
+                        uid = document.id,
+                        username = document.getString("username") ?: "",
+                        bio = document.getString("bio") ?: "",
+                        profileImage = document.getString("profileImage") ?: ""
+                    )
+
+                    allUsers.add(user)
+                    userList.add(user)
+                }
+
+                userAdapter.notifyDataSetChanged()
+            }
+    }
+
+    private fun filterUsers(query: String) {
+
+        userList.clear()
+
+        for (user in allUsers) {
+
+            if (user.username.contains(query, true) ||
+                user.bio.contains(query, true)
+            ) {
+                userList.add(user)
+            }
+        }
+
+        userAdapter.notifyDataSetChanged()
     }
 }
