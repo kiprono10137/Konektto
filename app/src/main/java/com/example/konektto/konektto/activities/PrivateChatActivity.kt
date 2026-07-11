@@ -1,5 +1,7 @@
 package com.example.konektto.konektto.activities
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -12,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
@@ -19,7 +22,9 @@ import com.example.konektto.konektto.adapters.PrivateMessageAdapter
 import com.example.konektto.konektto.fragments.AttachmentPickerSheet
 import com.example.konektto.konektto.models.PrivateMessage
 import com.example.konektto.konektto.utils.AttachmentUploader
+import com.example.konektto.konektto.utils.AudioPlaybackManager
 import com.example.konektto.konektto.utils.TimeUtils
+import com.example.konektto.konektto.utils.VoiceRecorderDialog
 import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -64,6 +69,20 @@ class PrivateChatActivity : AppCompatActivity() {
     private val imagePicker =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let { sendImageOrGifAttachment(it) }
+        }
+
+    private val filePicker =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sendFileAttachment(it) }
+        }
+
+    private val recordAudioPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                launchVoiceRecorder()
+            } else {
+                Toast.makeText(this, "Microphone permission is needed to record a voice note.", Toast.LENGTH_SHORT).show()
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,12 +161,8 @@ class PrivateChatActivity : AppCompatActivity() {
 
             AttachmentPickerSheet(
                 onPickImage = { imagePicker.launch("image/*") },
-                onPickVoiceNote = {
-                    Toast.makeText(this, "Voice notes coming soon!", Toast.LENGTH_SHORT).show()
-                },
-                onPickFile = {
-                    Toast.makeText(this, "File sharing coming soon!", Toast.LENGTH_SHORT).show()
-                }
+                onPickVoiceNote = { requestVoiceNote() },
+                onPickFile = { filePicker.launch("*/*") }
             ).show(supportFragmentManager, "attachment_picker")
 
         }
@@ -166,6 +181,8 @@ class PrivateChatActivity : AppCompatActivity() {
 
         typingHandler.removeCallbacks(stopTypingRunnable)
         setTypingStatus(false)
+
+        AudioPlaybackManager.stop()
 
     }
 
@@ -444,11 +461,11 @@ class PrivateChatActivity : AppCompatActivity() {
     }
 
     /**
-     * Shared by every send path (text, image, gif, and eventually voice/file):
-     * write the message doc, then merge-update the parent chat doc's
-     * lastMessage/lastTimestamp so the (future) chat list preview and any
-     * push notification copy have something sensible to show, whether the
-     * message was text or an attachment.
+     * Shared by every send path (text, image, gif, voice, file): write
+     * the message doc, then merge-update the parent chat doc's
+     * lastMessage/lastTimestamp so the chat list preview and any push
+     * notification copy have something sensible to show, whatever kind
+     * of message it was.
      */
     private fun writeMessage(
         messageRef: com.google.firebase.firestore.DocumentReference,
@@ -488,6 +505,98 @@ class PrivateChatActivity : AppCompatActivity() {
                 ).show()
 
             }
+
+    }
+
+    private fun requestVoiceNote() {
+
+        val alreadyGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (alreadyGranted) {
+            launchVoiceRecorder()
+        } else {
+            recordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+
+    }
+
+    private fun launchVoiceRecorder() {
+
+        VoiceRecorderDialog.show(this) { filePath, durationMs ->
+            sendVoiceNoteAttachment(filePath, durationMs)
+        }
+
+    }
+
+    private fun sendVoiceNoteAttachment(filePath: String, durationMs: Long) {
+
+        Toast.makeText(this, "Sending voice note...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadAudio(filePath) { url ->
+
+            if (url == null) {
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadAudio
+            }
+
+            val messageRef = db.collection("privateChats")
+                .document(chatId)
+                .collection("messages")
+                .document()
+
+            val message = PrivateMessage(
+                messageId = messageRef.id,
+                senderId = currentUserId,
+                receiverId = receiverId,
+                text = "",
+                timestamp = System.currentTimeMillis(),
+                read = false,
+                attachmentType = "audio",
+                attachmentUrl = url,
+                attachmentDuration = durationMs
+            )
+
+            writeMessage(messageRef, message, "🎤 Voice note")
+
+        }
+
+    }
+
+    private fun sendFileAttachment(uri: Uri) {
+
+        Toast.makeText(this, "Sending file...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadGenericFile(this, uri) { url, filename, sizeBytes ->
+
+            if (url == null) {
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadGenericFile
+            }
+
+            val messageRef = db.collection("privateChats")
+                .document(chatId)
+                .collection("messages")
+                .document()
+
+            val message = PrivateMessage(
+                messageId = messageRef.id,
+                senderId = currentUserId,
+                receiverId = receiverId,
+                text = "",
+                timestamp = System.currentTimeMillis(),
+                read = false,
+                attachmentType = "file",
+                attachmentUrl = url,
+                attachmentName = filename,
+                attachmentSize = sizeBytes
+            )
+
+            writeMessage(messageRef, message, "📎 $filename")
+
+        }
 
     }
 

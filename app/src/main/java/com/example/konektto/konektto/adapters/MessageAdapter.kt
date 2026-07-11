@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.konektto.R
 import com.example.konektto.konektto.models.Message
+import com.example.konektto.konektto.utils.AttachmentUploader
+import com.example.konektto.konektto.utils.AudioPlaybackManager
+import com.example.konektto.konektto.utils.TimeUtils
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
@@ -120,6 +123,7 @@ class MessageAdapter(
         holder.imgAttachment.visibility = View.GONE
         holder.audioPlayerRow.visibility = View.GONE
         holder.fileCard.visibility = View.GONE
+        holder.btnPlayAudio.text = "▶"
 
         when (message.attachmentType) {
 
@@ -139,6 +143,56 @@ class MessageAdapter(
                     )
 
                     holder.imgAttachment.context.startActivity(intent)
+
+                }
+
+            }
+
+            "audio" -> {
+
+                holder.audioPlayerRow.visibility = View.VISIBLE
+                holder.tvAudioDuration.text = TimeUtils.formatDuration(message.attachmentDuration)
+
+                holder.btnPlayAudio.text =
+                    if (AudioPlaybackManager.isPlaying(message.attachmentUrl)) "⏸" else "▶"
+
+                holder.btnPlayAudio.setOnClickListener {
+
+                    if (AudioPlaybackManager.isPlaying(message.attachmentUrl)) {
+
+                        AudioPlaybackManager.stop()
+                        holder.btnPlayAudio.text = "▶"
+
+                    } else {
+
+                        holder.btnPlayAudio.text = "⏸"
+
+                        AudioPlaybackManager.play(
+                            url = message.attachmentUrl,
+                            onCompletion = { holder.btnPlayAudio.text = "▶" },
+                            onStopped = { holder.btnPlayAudio.text = "▶" }
+                        )
+
+                    }
+
+                }
+
+            }
+
+            "file" -> {
+
+                holder.fileCard.visibility = View.VISIBLE
+                holder.tvFileName.text = message.attachmentName.ifBlank { "file" }
+                holder.tvFileSize.text = AttachmentUploader.formatFileSize(message.attachmentSize)
+
+                holder.fileCard.setOnClickListener {
+
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(message.attachmentUrl)
+                    )
+
+                    holder.fileCard.context.startActivity(intent)
 
                 }
 

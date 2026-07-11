@@ -8,6 +8,17 @@ import java.util.concurrent.TimeUnit
  */
 object TimeUtils {
 
+    /** "0:07", "1:23" -- for recording timers and voice note playback. */
+    fun formatDuration(millis: Long): String {
+
+        val totalSeconds = millis / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+
+        return String.format("%d:%02d", minutes, seconds)
+
+    }
+
     fun formatLastSeen(timestampMillis: Long): String {
 
         if (timestampMillis <= 0L) return "a while ago"

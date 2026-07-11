@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.konektto.R
 import com.example.konektto.konektto.models.PrivateMessage
+import com.example.konektto.konektto.utils.AttachmentUploader
+import com.example.konektto.konektto.utils.AudioPlaybackManager
+import com.example.konektto.konektto.utils.TimeUtils
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import java.text.SimpleDateFormat
@@ -86,6 +89,32 @@ class PrivateMessageAdapter(
         val message = messages[position]
         val isMine = message.senderId == currentUserId
 
+        // Align my messages to the right, theirs to the left -- the one
+        // visual cue every messaging app relies on to make a conversation
+        // scannable at a glance.
+        val params = holder.cardMessage.layoutParams as FrameLayout.LayoutParams
+        params.gravity = if (isMine) Gravity.END else Gravity.START
+        holder.cardMessage.layoutParams = params
+
+        val bubbleColor: Int
+        val textColor: Int
+
+        if (isMine) {
+
+            bubbleColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorPrimary)
+            textColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorOnPrimary)
+
+        } else {
+
+            bubbleColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorSurfaceVariant)
+            textColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorOnSurfaceVariant)
+
+        }
+
+        holder.cardMessage.setCardBackgroundColor(bubbleColor)
+        holder.tvMessage.setTextColor(textColor)
+        holder.tvTime.setTextColor(textColor)
+
         // Hard reset every attachment slot on every bind. This view may
         // have just been recycled from a completely different message --
         // if item #3 was a photo and this view is now showing item #9
@@ -94,6 +123,7 @@ class PrivateMessageAdapter(
         holder.imgAttachment.visibility = View.GONE
         holder.audioPlayerRow.visibility = View.GONE
         holder.fileCard.visibility = View.GONE
+        holder.btnPlayAudio.text = "▶"
 
         when (message.attachmentType) {
 
@@ -113,6 +143,59 @@ class PrivateMessageAdapter(
                     )
 
                     holder.imgAttachment.context.startActivity(intent)
+
+                }
+
+            }
+
+            "audio" -> {
+
+                holder.audioPlayerRow.visibility = View.VISIBLE
+                holder.tvAudioDuration.setTextColor(textColor)
+                holder.tvAudioDuration.text = TimeUtils.formatDuration(message.attachmentDuration)
+
+                holder.btnPlayAudio.text =
+                    if (AudioPlaybackManager.isPlaying(message.attachmentUrl)) "⏸" else "▶"
+
+                holder.btnPlayAudio.setOnClickListener {
+
+                    if (AudioPlaybackManager.isPlaying(message.attachmentUrl)) {
+
+                        AudioPlaybackManager.stop()
+                        holder.btnPlayAudio.text = "▶"
+
+                    } else {
+
+                        holder.btnPlayAudio.text = "⏸"
+
+                        AudioPlaybackManager.play(
+                            url = message.attachmentUrl,
+                            onCompletion = { holder.btnPlayAudio.text = "▶" },
+                            onStopped = { holder.btnPlayAudio.text = "▶" }
+                        )
+
+                    }
+
+                }
+
+            }
+
+            "file" -> {
+
+                holder.fileCard.visibility = View.VISIBLE
+                holder.tvFileName.text = message.attachmentName.ifBlank { "file" }
+                holder.tvFileName.setTextColor(textColor)
+                holder.tvFileSize.text = AttachmentUploader.formatFileSize(message.attachmentSize)
+                holder.tvFileSize.setTextColor(textColor)
+
+                holder.fileCard.setOnClickListener {
+
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(message.attachmentUrl)
+                    )
+
+                    holder.fileCard.context.startActivity(intent)
 
                 }
 
@@ -140,35 +223,6 @@ class PrivateMessageAdapter(
 
         holder.tvTime.text =
             sdf.format(Date(message.timestamp))
-
-        // Align my messages to the right, theirs to the left -- the one
-        // visual cue every messaging app relies on to make a conversation
-        // scannable at a glance.
-        val params = holder.cardMessage.layoutParams as FrameLayout.LayoutParams
-        params.gravity = if (isMine) Gravity.END else Gravity.START
-        holder.cardMessage.layoutParams = params
-
-        val bubbleColor: Int
-        val textColor: Int
-        val timeColor: Int
-
-        if (isMine) {
-
-            bubbleColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorPrimary)
-            textColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorOnPrimary)
-            timeColor = textColor
-
-        } else {
-
-            bubbleColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorSurfaceVariant)
-            textColor = MaterialColors.getColor(holder.cardMessage, com.google.android.material.R.attr.colorOnSurfaceVariant)
-            timeColor = textColor
-
-        }
-
-        holder.cardMessage.setCardBackgroundColor(bubbleColor)
-        holder.tvMessage.setTextColor(textColor)
-        holder.tvTime.setTextColor(timeColor)
 
         // Read receipts only make sense on messages *I* sent -- nobody
         // expects to see a checkmark on a bubble someone else sent them.

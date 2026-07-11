@@ -238,4 +238,17 @@ object AttachmentUploader {
 
     }
 
+    /** "482 KB", "3.1 MB" -- for displaying a file attachment's size in chat. */
+    fun formatFileSize(bytes: Long): String {
+
+        if (bytes <= 0) return "0 KB"
+
+        val kb = bytes / 1024.0
+        if (kb < 1024) return "${kb.toInt()} KB"
+
+        val mb = kb / 1024.0
+        return String.format("%.1f MB", mb)
+
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.example.konektto.konektto.activities
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -9,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
@@ -16,6 +19,8 @@ import com.example.konektto.konektto.adapters.MessageAdapter
 import com.example.konektto.konektto.fragments.AttachmentPickerSheet
 import com.example.konektto.konektto.models.Message
 import com.example.konektto.konektto.utils.AttachmentUploader
+import com.example.konektto.konektto.utils.AudioPlaybackManager
+import com.example.konektto.konektto.utils.VoiceRecorderDialog
 import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -48,6 +53,20 @@ class RoomDashboardActivity : AppCompatActivity() {
     private val imagePicker =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let { sendImageOrGifAttachment(it) }
+        }
+
+    private val filePicker =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sendFileAttachment(it) }
+        }
+
+    private val recordAudioPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                launchVoiceRecorder()
+            } else {
+                Toast.makeText(this, "Microphone permission is needed to record a voice note.", Toast.LENGTH_SHORT).show()
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,12 +114,8 @@ class RoomDashboardActivity : AppCompatActivity() {
 
             AttachmentPickerSheet(
                 onPickImage = { imagePicker.launch("image/*") },
-                onPickVoiceNote = {
-                    Toast.makeText(this, "Voice notes coming soon!", Toast.LENGTH_SHORT).show()
-                },
-                onPickFile = {
-                    Toast.makeText(this, "File sharing coming soon!", Toast.LENGTH_SHORT).show()
-                }
+                onPickVoiceNote = { requestVoiceNote() },
+                onPickFile = { filePicker.launch("*/*") }
             ).show(supportFragmentManager, "attachment_picker")
 
         }
@@ -140,6 +155,12 @@ class RoomDashboardActivity : AppCompatActivity() {
         }
 
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        AudioPlaybackManager.stop()
+    }
+
     private fun loadRoomDetails() {
 
         db.collection("rooms")
@@ -388,6 +409,122 @@ class RoomDashboardActivity : AppCompatActivity() {
                 ).show()
 
             }
+
+    }
+
+    private fun requestVoiceNote() {
+
+        val alreadyGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (alreadyGranted) {
+            launchVoiceRecorder()
+        } else {
+            recordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+
+    }
+
+    private fun launchVoiceRecorder() {
+
+        VoiceRecorderDialog.show(this) { filePath, durationMs ->
+            sendVoiceNoteAttachment(filePath, durationMs)
+        }
+
+    }
+
+    private fun sendVoiceNoteAttachment(filePath: String, durationMs: Long) {
+
+        Toast.makeText(this, "Sending voice note...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadAudio(filePath) { url ->
+
+            if (url == null) {
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadAudio
+            }
+
+            withCurrentUsername { uid, username ->
+
+                val messageRef = db.collection("rooms")
+                    .document(roomId)
+                    .collection("messages")
+                    .document()
+
+                val message = Message(
+                    messageId = messageRef.id,
+                    senderId = uid,
+                    senderName = username,
+                    text = "",
+                    timestamp = System.currentTimeMillis(),
+                    attachmentType = "audio",
+                    attachmentUrl = url,
+                    attachmentDuration = durationMs
+                )
+
+                messageRef.set(message)
+                    .addOnFailureListener { e ->
+
+                        Toast.makeText(
+                            this,
+                            e.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+
+            }
+
+        }
+
+    }
+
+    private fun sendFileAttachment(uri: Uri) {
+
+        Toast.makeText(this, "Sending file...", Toast.LENGTH_SHORT).show()
+
+        AttachmentUploader.uploadGenericFile(this, uri) { url, filename, sizeBytes ->
+
+            if (url == null) {
+                Toast.makeText(this, "Upload failed.", Toast.LENGTH_LONG).show()
+                return@uploadGenericFile
+            }
+
+            withCurrentUsername { uid, username ->
+
+                val messageRef = db.collection("rooms")
+                    .document(roomId)
+                    .collection("messages")
+                    .document()
+
+                val message = Message(
+                    messageId = messageRef.id,
+                    senderId = uid,
+                    senderName = username,
+                    text = "",
+                    timestamp = System.currentTimeMillis(),
+                    attachmentType = "file",
+                    attachmentUrl = url,
+                    attachmentName = filename,
+                    attachmentSize = sizeBytes
+                )
+
+                messageRef.set(message)
+                    .addOnFailureListener { e ->
+
+                        Toast.makeText(
+                            this,
+                            e.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+
+            }
+
+        }
 
     }
 
