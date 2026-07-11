@@ -2,6 +2,7 @@ package com.example.konektto.konektto
 
 import android.app.Application
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.example.konektto.konektto.utils.NotificationHelper
 import com.example.konektto.konektto.utils.PresenceManager
 
 class KonecttoApplication : Application() {
@@ -12,6 +13,8 @@ class KonecttoApplication : Application() {
         ProcessLifecycleOwner.get()
             .lifecycle
             .addObserver(PresenceManager)
+
+        NotificationHelper.createNotificationChannels(this)
 
     }
 
