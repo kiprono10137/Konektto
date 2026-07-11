@@ -10,8 +10,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.activities.RoomDashboardActivity
+import com.example.konektto.konektto.adapters.RecommendedRoomAdapter
 import com.example.konektto.konektto.adapters.RoomAdapter
+import com.example.konektto.konektto.models.RecommendedRoom
 import com.example.konektto.konektto.models.Room
+import com.example.konektto.konektto.utils.RoomRecommendationEngine
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -21,12 +24,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var adapter: RoomAdapter
     private lateinit var db: FirebaseFirestore
 
+    private lateinit var tvRecommendedLabel: TextView
+    private lateinit var rvRecommended: RecyclerView
+    private lateinit var recommendedAdapter: RecommendedRoomAdapter
+
     private val roomList = mutableListOf<Room>()
+    private val recommendedList = mutableListOf<RecommendedRoom>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = view.findViewById(R.id.rvRooms)
+        tvRecommendedLabel = view.findViewById(R.id.tvRecommendedLabel)
+        rvRecommended = view.findViewById(R.id.rvRecommended)
 
         db = FirebaseFirestore.getInstance()
 
@@ -34,14 +44,23 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             openRoom(room)
         }
 
+        recommendedAdapter = RecommendedRoomAdapter(recommendedList) { recommended ->
+            openRoom(recommended.room)
+        }
+
         setupRecyclerView()
         loadUsername(view)
         loadRooms()
+        loadRecommendations()
     }
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
+
+        rvRecommended.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        rvRecommended.adapter = recommendedAdapter
     }
 
     private fun loadUsername(view: View) {
@@ -59,6 +78,37 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 txtWelcome.text = "Welcome back, $username!"
 
             }
+    }
+
+    private fun loadRecommendations() {
+
+        RoomRecommendationEngine.recommend { result ->
+
+            if (!isAdded) return@recommend // fragment may have been destroyed by the time this returns
+
+            recommendedList.clear()
+            recommendedList.addAll(result.recommendations)
+            recommendedAdapter.notifyDataSetChanged()
+
+            if (recommendedList.isEmpty()) {
+
+                tvRecommendedLabel.visibility = View.GONE
+                rvRecommended.visibility = View.GONE
+
+            } else {
+
+                tvRecommendedLabel.visibility = View.VISIBLE
+                rvRecommended.visibility = View.VISIBLE
+
+                tvRecommendedLabel.text = if (result.isFallbackPopular)
+                    "🔥 Popular Right Now"
+                else
+                    "✨ Recommended for You"
+
+            }
+
+        }
+
     }
 
     private fun loadRooms() {
