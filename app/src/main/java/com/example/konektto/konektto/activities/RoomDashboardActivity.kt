@@ -363,7 +363,7 @@ class RoomDashboardActivity : AppCompatActivity() {
             messageRef.set(message)
                 .addOnSuccessListener {
 
-                    etMessage.text.clear()
+                    etMessage.text?.clear()
 
                 }
                 .addOnFailureListener { e ->

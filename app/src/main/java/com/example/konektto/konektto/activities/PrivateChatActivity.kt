@@ -410,7 +410,7 @@ class PrivateChatActivity : AppCompatActivity() {
         )
 
         writeMessage(messageRef, message, text) {
-            etMessage.text.clear()
+            etMessage.text?.clear()
         }
 
     }

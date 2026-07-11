@@ -101,7 +101,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
             }
 
-            etSearch.text.clear()
+            etSearch.text?.clear()
         }
 
         etSearch.addTextChangedListener(object : TextWatcher {
