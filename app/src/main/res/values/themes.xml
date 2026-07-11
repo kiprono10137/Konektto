@@ -44,12 +44,12 @@
     </style>
 
     <!-- Reusable circular shape for avatar images across the app -->
-    <style name="ShapeAppearanceOverlay.Konektto.Circle">
+    <style name="ShapeAppearanceOverlay.Konektto.Circle" parent="">
         <item name="cornerSize">50%</item>
     </style>
 
     <!-- Rounded corners for chat media attachments (images/gifs) -->
-    <style name="ShapeAppearanceOverlay.Konektto.RoundedMedia">
+    <style name="ShapeAppearanceOverlay.Konektto.RoundedMedia" parent="">
         <item name="cornerSize">12dp</item>
     </style>
 
