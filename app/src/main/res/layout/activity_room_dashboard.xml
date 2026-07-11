@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F7FB">
+    android:background="?android:attr/colorBackground">
 
     <!-- HEADER -->
 
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp"
-        android:background="#2563EB">
+        android:background="?attr/colorPrimary">
 
         <TextView
             android:id="@+id/tvRoomTitle"
@@ -22,7 +22,7 @@
             android:text="Football Fans"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@android:color/white"/>
+            android:textColor="?attr/colorOnPrimary"/>
 
         <TextView
             android:id="@+id/tvCreator"
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Created by Kip"
-            android:textColor="#DCE7FF"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="15sp"/>
 
         <TextView
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="⚽ Football"
-            android:textColor="#DCE7FF"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="15sp"/>
 
         <TextView
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="👥 1 Member"
-            android:textColor="#DCE7FF"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="15sp"/>
 
     </LinearLayout>
@@ -60,10 +60,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="#FFF3CD"
+        android:background="?attr/colorTertiaryContainer"
         android:padding="14dp"
         android:text="📢 Announcement"
-        android:textColor="#000000"
+        android:textColor="?attr/colorOnTertiaryContainer"
         android:textStyle="bold"
         android:visibility="gone"/>
 
@@ -94,9 +94,9 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#EF4444"
+            android:backgroundTint="?attr/colorError"
             android:text="🚪 Leave Community"
-            android:textColor="@android:color/white"/>
+            android:textColor="?attr/colorOnError"/>
 
     </LinearLayout>
 
@@ -118,7 +118,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="12dp"
-        android:background="@android:color/white">
+        android:background="?attr/colorSurface">
 
         <EditText
             android:id="@+id/etMessage"
@@ -127,8 +127,8 @@
             android:layout_weight="1"
             android:background="@android:drawable/edit_text"
             android:hint="Message the community..."
-            android:textColor="@android:color/black"
-            android:textColorHint="#808080"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:paddingHorizontal="16dp"/>

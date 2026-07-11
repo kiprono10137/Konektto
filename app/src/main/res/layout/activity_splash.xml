@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#F5F5F5">
+    android:background="?android:attr/colorBackground">
 
     <TextView
         android:id="@+id/txtAppName"
@@ -15,14 +15,14 @@
         android:text="Konektto"
         android:textSize="36sp"
         android:textStyle="bold"
-        android:textColor="#3F51B5"/>
+        android:textColor="?attr/colorPrimary"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/chat_your_way"
         android:textSize="16sp"
-        android:textColor="#757575"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginTop="8dp"/>
 
 </LinearLayout>
