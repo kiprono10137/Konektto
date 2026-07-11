@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FB">
+    android:background="?android:attr/colorBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,18 +13,22 @@
         android:gravity="center_horizontal"
         android:padding="24dp">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgProfile"
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_marginTop="20dp"
-            android:background="@android:color/darker_gray"
+            android:background="?attr/colorSurfaceVariant"
             android:padding="4dp"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/sym_def_app_icon" />
+            android:src="@android:drawable/sym_def_app_icon"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Konektto.Circle"
+            app:strokeColor="?attr/colorPrimaryContainer"
+            app:strokeWidth="3dp" />
 
         <Button
             android:id="@+id/btnChangePhoto"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -36,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="Username"
-            android:textColor="#111827"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="26sp"
             android:textStyle="bold" />
 
@@ -46,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="email@example.com"
-            android:textColor="#6B7280"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="16sp" />
 
         <com.google.android.material.card.MaterialCardView
@@ -54,8 +58,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:layout_marginHorizontal="4dp"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="18dp"
-            app:cardElevation="8dp">
+            app:cardElevation="4dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -65,12 +72,14 @@
 
                 <Button
                     android:id="@+id/btnEditProfile"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="✏️ Edit Profile" />
 
                 <Button
                     android:id="@+id/btnMyRooms"
+                    style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -78,6 +87,7 @@
 
                 <Button
                     android:id="@+id/btnSettings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -85,12 +95,13 @@
 
                 <Button
                     android:id="@+id/btnLogout"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:backgroundTint="#E53935"
+                    android:backgroundTint="?attr/colorError"
                     android:text="🚪 Logout"
-                    android:textColor="@android:color/white" />
+                    android:textColor="?attr/colorOnError" />
 
             </LinearLayout>
 

@@ -34,4 +34,9 @@
 
     </style>
 
+    <!-- Reusable circular shape for avatar images across the app -->
+    <style name="ShapeAppearanceOverlay.Konektto.Circle">
+        <item name="cornerSize">50%</item>
+    </style>
+
 </resources>
