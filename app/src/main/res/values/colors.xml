@@ -1,10 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- Core neutrals -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand primary: blue, matching the accent already used in room_item.xml -->
+    <color name="konektto_primary_light">#2563EB</color>
+    <color name="konektto_on_primary_light">#FFFFFF</color>
+    <color name="konektto_primary_container_light">#DBEAFE</color>
+    <color name="konektto_on_primary_container_light">#1E3A8A</color>
+
+    <color name="konektto_primary_dark">#93C5FD</color>
+    <color name="konektto_on_primary_dark">#1E3A8A</color>
+    <color name="konektto_primary_container_dark">#1E40AF</color>
+    <color name="konektto_on_primary_container_dark">#DBEAFE</color>
+
+    <!-- Secondary: teal, echoing the original brand's teal accent -->
+    <color name="konektto_secondary_light">#0F766E</color>
+    <color name="konektto_on_secondary_light">#FFFFFF</color>
+    <color name="konektto_secondary_container_light">#CCFBF1</color>
+    <color name="konektto_on_secondary_container_light">#134E4A</color>
+
+    <color name="konektto_secondary_dark">#5EEAD4</color>
+    <color name="konektto_on_secondary_dark">#134E4A</color>
+    <color name="konektto_secondary_container_dark">#115E59</color>
+    <color name="konektto_on_secondary_container_dark">#CCFBF1</color>
+
+    <!-- Tertiary: warm amber for highlights/badges -->
+    <color name="konektto_tertiary_light">#B45309</color>
+    <color name="konektto_on_tertiary_light">#FFFFFF</color>
+    <color name="konektto_tertiary_container_light">#FEF3C7</color>
+    <color name="konektto_on_tertiary_container_light">#78350F</color>
+
+    <color name="konektto_tertiary_dark">#FCD34D</color>
+    <color name="konektto_on_tertiary_dark">#78350F</color>
+    <color name="konektto_tertiary_container_dark">#92400E</color>
+    <color name="konektto_on_tertiary_container_dark">#FEF3C7</color>
+
+    <!-- Surfaces / background, matching existing screen backgrounds (#F5F7FB, #111827, #6B7280) -->
+    <color name="konektto_background_light">#F5F7FB</color>
+    <color name="konektto_on_background_light">#111827</color>
+    <color name="konektto_surface_light">#FFFFFF</color>
+    <color name="konektto_on_surface_light">#111827</color>
+    <color name="konektto_surface_variant_light">#E5E7EB</color>
+    <color name="konektto_on_surface_variant_light">#6B7280</color>
+    <color name="konektto_outline_light">#E5E7EB</color>
+
+    <color name="konektto_background_dark">#111827</color>
+    <color name="konektto_on_background_dark">#F3F4F6</color>
+    <color name="konektto_surface_dark">#1F2937</color>
+    <color name="konektto_on_surface_dark">#F3F4F6</color>
+    <color name="konektto_surface_variant_dark">#374151</color>
+    <color name="konektto_on_surface_variant_dark">#9CA3AF</color>
+    <color name="konektto_outline_dark">#374151</color>
+
+    <!-- Error -->
+    <color name="konektto_error_light">#DC2626</color>
+    <color name="konektto_on_error_light">#FFFFFF</color>
+    <color name="konektto_error_dark">#F87171</color>
+    <color name="konektto_on_error_dark">#7F1D1D</color>
+
+    <!-- Legacy aliases kept for safety in case referenced elsewhere -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
 </resources>
