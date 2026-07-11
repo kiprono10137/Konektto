@@ -10,5 +10,9 @@ data class Room(
     val creatorId: String = "",
     val creatorUsername: String = "",
     val createdAt: Long = System.currentTimeMillis(),
-    val memberCount: Int = 1
+    val memberCount: Int = 1,
+
+    val pinnedMessageId: String = "",
+    val pinnedMessageText: String = "",
+    val pinnedMessageSenderName: String = ""
 )

@@ -22,7 +22,9 @@ import java.util.*
 
 class MessageAdapter(
     private val messageList: List<Message>,
-    private val onDeleteClick: (Message) -> Unit
+    private val viewerRole: String,
+    private val onDeleteClick: (Message) -> Unit,
+    private val onPinClick: (Message) -> Unit
 ) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
     inner class MessageViewHolder(itemView: View) :
@@ -67,18 +69,33 @@ class MessageAdapter(
                 val currentUser =
                     FirebaseAuth.getInstance().currentUser
 
-                if (currentUser?.uid == message.senderId) {
+                val isModerator = viewerRole == "owner" || viewerRole == "moderator"
+                val isOwnMessage = currentUser?.uid == message.senderId
+
+                if (isOwnMessage || isModerator) {
 
                     val popup = PopupMenu(
                         itemView.context,
                         itemView
                     )
 
-                    popup.menu.add("Delete")
+                    // Anyone can delete their own message; owners and
+                    // moderators can delete anyone's, which is the whole
+                    // point of having moderation in the first place.
+                    if (isOwnMessage || isModerator) {
+                        popup.menu.add("Delete")
+                    }
 
-                    popup.setOnMenuItemClickListener {
+                    if (isModerator) {
+                        popup.menu.add("📌 Pin to top")
+                    }
 
-                        onDeleteClick(message)
+                    popup.setOnMenuItemClickListener { item ->
+
+                        when (item.title) {
+                            "Delete" -> onDeleteClick(message)
+                            "📌 Pin to top" -> onPinClick(message)
+                        }
 
                         true
                     }

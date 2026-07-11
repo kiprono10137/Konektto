@@ -124,7 +124,8 @@ class CreateRoomActivity : AppCompatActivity() {
                         val memberData = hashMapOf(
                             "userId" to currentUser.uid,
                             "username" to username,
-                            "joinedAt" to System.currentTimeMillis()
+                            "joinedAt" to System.currentTimeMillis(),
+                            "role" to "owner"
                         )
 
                         roomRef.collection("members")

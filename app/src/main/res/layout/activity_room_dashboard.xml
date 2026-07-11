@@ -67,6 +67,41 @@
         android:textStyle="bold"
         android:visibility="gone"/>
 
+    <!-- PINNED MESSAGE -->
+
+    <LinearLayout
+        android:id="@+id/pinnedMessageBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="?attr/colorSecondaryContainer"
+        android:padding="14dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvPinnedMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📌 Pinned message"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btnUnpin"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="✕"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
     <!-- BUTTONS -->
 
     <LinearLayout

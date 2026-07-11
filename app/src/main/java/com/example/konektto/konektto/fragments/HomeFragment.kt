@@ -148,7 +148,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val memberData = hashMapOf(
                     "userId" to userId,
                     "username" to username,
-                    "joinedAt" to System.currentTimeMillis()
+                    "joinedAt" to System.currentTimeMillis(),
+                    "role" to "member"
                 )
 
                 db.collection("rooms")

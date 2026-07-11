@@ -34,6 +34,10 @@ class RoomDashboardActivity : AppCompatActivity() {
 
     private lateinit var tvAnnouncement: TextView
 
+    private lateinit var pinnedMessageBanner: View
+    private lateinit var tvPinnedMessage: TextView
+    private lateinit var btnUnpin: Button
+
     private lateinit var rvMessages: RecyclerView
     private lateinit var etMessage: GifSupportEditText
 
@@ -49,6 +53,8 @@ class RoomDashboardActivity : AppCompatActivity() {
     private val messageList = mutableListOf<Message>()
 
     private lateinit var roomId: String
+    private var viewerRole: String = "member"
+    private var lastPinnedText: String = ""
 
     private val imagePicker =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -81,6 +87,10 @@ class RoomDashboardActivity : AppCompatActivity() {
         tvMembers = findViewById(R.id.tvMembers)
         tvAnnouncement = findViewById(R.id.tvAnnouncement)
 
+        pinnedMessageBanner = findViewById(R.id.pinnedMessageBanner)
+        tvPinnedMessage = findViewById(R.id.tvPinnedMessage)
+        btnUnpin = findViewById(R.id.btnUnpin)
+
 
         rvMessages = findViewById(R.id.rvMessages)
         etMessage = findViewById(R.id.etMessage)
@@ -95,16 +105,16 @@ class RoomDashboardActivity : AppCompatActivity() {
 
         roomId = intent.getStringExtra("roomId") ?: ""
 
-        adapter = MessageAdapter(messageList) { message ->
-            deleteMessage(message)
-        }
-
         rvMessages.layoutManager = LinearLayoutManager(this)
-        rvMessages.adapter = adapter
+
+        loadViewerRoleThenSetupChat()
 
         loadRoomDetails()
-        listenForMessages()
         loadAnnouncement()
+
+        btnUnpin.setOnClickListener {
+            unpinMessage()
+        }
 
         btnSend.setOnClickListener {
             sendMessage()
@@ -159,6 +169,56 @@ class RoomDashboardActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         AudioPlaybackManager.stop()
+    }
+
+    /**
+     * The message adapter's own moderation menu (delete-any-message,
+     * pin-to-top) depends on knowing the current user's role in this room
+     * first -- can't build it until that comes back, same reasoning as
+     * MembersActivity.
+     */
+    private fun loadViewerRoleThenSetupChat() {
+
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (currentUserId == null) {
+            setupChatAdapter()
+            return
+        }
+
+        db.collection("rooms")
+            .document(roomId)
+            .collection("members")
+            .document(currentUserId)
+            .get()
+            .addOnSuccessListener { document ->
+
+                viewerRole = document.getString("role") ?: "member"
+                setupChatAdapter()
+                updateUnpinButtonVisibility()
+
+            }
+            .addOnFailureListener {
+
+                setupChatAdapter()
+
+            }
+
+    }
+
+    private fun setupChatAdapter() {
+
+        adapter = MessageAdapter(
+            messageList = messageList,
+            viewerRole = viewerRole,
+            onDeleteClick = { message -> deleteMessage(message) },
+            onPinClick = { message -> pinMessage(message) }
+        )
+
+        rvMessages.adapter = adapter
+
+        listenForMessages()
+
     }
 
     private fun loadRoomDetails() {
@@ -634,9 +694,89 @@ class RoomDashboardActivity : AppCompatActivity() {
 
                     }
 
+                    val pinnedText = snapshot.getString("pinnedMessageText") ?: ""
+                    val pinnedSender = snapshot.getString("pinnedMessageSenderName") ?: ""
+
+                    lastPinnedText = pinnedText
+
+                    if (pinnedText.isNotEmpty()) {
+
+                        pinnedMessageBanner.visibility = View.VISIBLE
+                        tvPinnedMessage.text = "📌 $pinnedSender: $pinnedText"
+                        updateUnpinButtonVisibility()
+
+                    } else {
+
+                        pinnedMessageBanner.visibility = View.GONE
+
+                    }
+
                 }
 
             }
+
+    }
+
+    private fun updateUnpinButtonVisibility() {
+
+        // Only owners and moderators can unpin -- everyone else just sees
+        // what's pinned, same as they could see it was pinned in the
+        // first place without being the one who did it.
+        val canModerate = viewerRole == "owner" || viewerRole == "moderator"
+
+        btnUnpin.visibility =
+            if (canModerate && lastPinnedText.isNotEmpty()) View.VISIBLE else View.GONE
+
+    }
+
+    private fun pinMessage(message: Message) {
+
+        val previewText = when {
+
+            message.text.isNotBlank() -> message.text
+
+            message.attachmentType == "image" -> "📷 Photo"
+            message.attachmentType == "gif" -> "GIF"
+            message.attachmentType == "audio" -> "🎤 Voice note"
+            message.attachmentType == "file" -> "📎 ${message.attachmentName.ifBlank { "File" }}"
+
+            else -> ""
+
+        }
+
+        db.collection("rooms")
+            .document(roomId)
+            .update(
+                mapOf(
+                    "pinnedMessageId" to message.messageId,
+                    "pinnedMessageText" to previewText,
+                    "pinnedMessageSenderName" to message.senderName
+                )
+            )
+            .addOnSuccessListener {
+
+                Toast.makeText(this, "Message pinned.", Toast.LENGTH_SHORT).show()
+
+            }
+            .addOnFailureListener { e ->
+
+                Toast.makeText(this, e.localizedMessage, Toast.LENGTH_LONG).show()
+
+            }
+
+    }
+
+    private fun unpinMessage() {
+
+        db.collection("rooms")
+            .document(roomId)
+            .update(
+                mapOf(
+                    "pinnedMessageId" to "",
+                    "pinnedMessageText" to "",
+                    "pinnedMessageSenderName" to ""
+                )
+            )
 
     }
 
