@@ -113,7 +113,8 @@ class CreateRoomActivity : AppCompatActivity() {
                     "creatorId" to currentUser.uid,
                     "creatorUsername" to username,
                     "createdAt" to System.currentTimeMillis(),
-                    "memberCount" to 1
+                    "memberCount" to 1,
+                    "inviteCode" to generateInviteCode()
 
                 )
 
@@ -155,5 +156,12 @@ class CreateRoomActivity : AppCompatActivity() {
                     }
 
             }
+    }
+
+    private fun generateInviteCode(): String {
+
+        val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // no 0/O/1/I -- easy to misread aloud
+        return (1..6).map { chars.random() }.joinToString("")
+
     }
 }

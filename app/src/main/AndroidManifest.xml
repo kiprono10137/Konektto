@@ -51,6 +51,19 @@
         <activity android:name="com.example.konektto.konektto.activities.PrivateChatActivity"/>
         <activity android:name="com.example.konektto.konektto.activities.FriendRequestsActivity"/>
 
+        <activity android:name="com.example.konektto.konektto.activities.JoinByCodeActivity"/>
+
+        <activity
+            android:name="com.example.konektto.konektto.activities.DeepLinkActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="konektto" android:host="join"/>
+            </intent-filter>
+        </activity>
+
         <service
             android:name="com.example.konektto.konektto.services.KonecttoMessagingService"
             android:exported="false">

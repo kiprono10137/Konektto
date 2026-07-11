@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
+import com.example.konektto.konektto.activities.JoinByCodeActivity
 import com.example.konektto.konektto.activities.RoomDashboardActivity
 import com.example.konektto.konektto.activities.UserProfileActivity
 import com.example.konektto.konektto.adapters.RoomAdapter
@@ -45,6 +46,10 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         etSearch = view.findViewById(R.id.etSearch)
         rvSearchResults = view.findViewById(R.id.rvSearchResults)
         toggleSearchMode = view.findViewById(R.id.toggleSearchMode)
+
+        view.findViewById<android.widget.Button>(R.id.btnJoinByCode).setOnClickListener {
+            startActivity(Intent(requireContext(), JoinByCodeActivity::class.java))
+        }
 
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()

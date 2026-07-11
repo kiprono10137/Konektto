@@ -43,10 +43,19 @@
         android:textColorHint="?attr/colorOnSurfaceVariant"
         android:hint="Search communities..." />
 
+    <Button
+        android:id="@+id/btnJoinByCode"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="4dp"
+        android:text="🔗 Have an invite code?" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSearchResults"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="4dp"/>
 
 </LinearLayout>

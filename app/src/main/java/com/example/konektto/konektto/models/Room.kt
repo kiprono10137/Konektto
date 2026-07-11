@@ -14,5 +14,7 @@ data class Room(
 
     val pinnedMessageId: String = "",
     val pinnedMessageText: String = "",
-    val pinnedMessageSenderName: String = ""
+    val pinnedMessageSenderName: String = "",
+
+    val inviteCode: String = ""
 )

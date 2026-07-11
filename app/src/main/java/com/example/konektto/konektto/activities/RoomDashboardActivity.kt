@@ -44,6 +44,7 @@ class RoomDashboardActivity : AppCompatActivity() {
     private lateinit var btnSend: Button
     private lateinit var btnAttach: Button
     private lateinit var btnViewMembers: Button
+    private lateinit var btnInvite: Button
     private lateinit var btnLeaveRoom: Button
     private lateinit var btnAdminPanel: Button
 
@@ -55,6 +56,7 @@ class RoomDashboardActivity : AppCompatActivity() {
     private lateinit var roomId: String
     private var viewerRole: String = "member"
     private var lastPinnedText: String = ""
+    private var inviteCode: String = ""
 
     private val imagePicker =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -98,6 +100,7 @@ class RoomDashboardActivity : AppCompatActivity() {
         btnSend = findViewById(R.id.btnSend)
         btnAttach = findViewById(R.id.btnAttach)
         btnViewMembers = findViewById(R.id.btnViewMembers)
+        btnInvite = findViewById(R.id.btnInvite)
         btnLeaveRoom = findViewById(R.id.btnLeaveRoom)
         btnAdminPanel = findViewById(R.id.btnAdminPanel)
 
@@ -145,6 +148,10 @@ class RoomDashboardActivity : AppCompatActivity() {
 
             startActivity(intent)
 
+        }
+
+        btnInvite.setOnClickListener {
+            shareInvite()
         }
 
         btnLeaveRoom.setOnClickListener {
@@ -247,6 +254,8 @@ class RoomDashboardActivity : AppCompatActivity() {
 
                 tvMembers.text =
                     "👥 $members Members"
+
+                inviteCode = document.getString("inviteCode") ?: ""
 
                 // Show Admin Panel only to the room creator
                 val creatorId =
@@ -714,6 +723,40 @@ class RoomDashboardActivity : AppCompatActivity() {
                 }
 
             }
+
+    }
+
+    private fun shareInvite() {
+
+        if (inviteCode.isBlank()) {
+
+            Toast.makeText(
+                this,
+                "This community doesn't have an invite code yet.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+
+        }
+
+        // The deep link is included for keyboards/apps that do auto-linkify
+        // custom URI schemes, but the plain code is the reliable fallback --
+        // most messaging apps only auto-linkify http/https, not custom
+        // schemes like konektto://, so a pasted link might just sit there
+        // as inert text depending on where it's shared.
+        val shareText = buildString {
+            append("Join \"${tvRoomTitle.text}\" on Konektto!\n\n")
+            append("Tap this link: konektto://join/$inviteCode\n\n")
+            append("Or open Konektto, tap \"Join by Code\", and enter: $inviteCode")
+        }
+
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
+
+        startActivity(Intent.createChooser(shareIntent, "Share invite"))
 
     }
 
