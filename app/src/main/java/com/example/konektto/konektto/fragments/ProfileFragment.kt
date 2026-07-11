@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.konektto.R
 import com.example.konektto.konektto.activities.EditProfileActivity
+import com.example.konektto.konektto.activities.FriendRequestsActivity
 import com.example.konektto.konektto.activities.LoginActivity
 import com.example.konektto.konektto.activities.MyRoomsActivity
 import com.example.konektto.konektto.activities.SettingsActivity
@@ -39,6 +40,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val btnChangePhoto = view.findViewById<Button>(R.id.btnChangePhoto)
         val btnEditProfile = view.findViewById<Button>(R.id.btnEditProfile)
         val btnMyRooms = view.findViewById<Button>(R.id.btnMyRooms)
+        val btnFriendRequests = view.findViewById<Button>(R.id.btnFriendRequests)
         val btnSettings = view.findViewById<Button>(R.id.btnSettings)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
 
@@ -47,6 +49,12 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         btnChangePhoto.setOnClickListener {
             startActivity(
                 Intent(requireContext(), EditProfileActivity::class.java)
+            )
+        }
+
+        btnFriendRequests.setOnClickListener {
+            startActivity(
+                Intent(requireContext(), FriendRequestsActivity::class.java)
             )
         }
 
