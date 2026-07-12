@@ -1,42 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp">
+    android:background="?android:attr/colorBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👑 Community Admin"
-            android:textSize="28sp"
-            android:textStyle="bold"/>
+            android:text="Community Admin"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"/>
 
-        <Button
-            android:id="@+id/btnEditRoom"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Manage this community"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurfaceVariant"/>
+
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✏ Edit Community"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/btnEditRoom"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="Edit Community"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    app:icon="@drawable/ic_edit"
+                    app:iconTint="?attr/colorOnSurfaceVariant"
+                    app:iconGravity="textStart"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/colorOutline"/>
+
+                <Button
+                    android:id="@+id/btnAnnouncements"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="Announcements"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    app:icon="@drawable/ic_campaign"
+                    app:iconTint="?attr/colorOnSurfaceVariant"
+                    app:iconGravity="textStart"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Delete is destructive and different in kind from the rest :
+             set apart, not stacked into the same neutral card. -->
         <Button
             android:id="@+id/btnDeleteRoom"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🗑 Delete Community"
-            android:layout_marginTop="12dp"/>
-
-        <Button
-            android:id="@+id/btnAnnouncements"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📢 Announcements"
-            android:layout_marginTop="12dp"/>
+            android:layout_height="56dp"
+            android:layout_marginTop="20dp"
+            android:gravity="start|center_vertical"
+            android:paddingHorizontal="16dp"
+            android:text="Delete Community"
+            android:textColor="?attr/colorError"
+            android:textSize="16sp"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="?attr/colorError"
+            app:iconGravity="textStart"/>
 
     </LinearLayout>
 

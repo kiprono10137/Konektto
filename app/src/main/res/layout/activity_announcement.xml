@@ -4,28 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:background="?android:attr/colorBackground"
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📢 Community Announcement"
+        android:text="Community Announcement"
         android:textStyle="bold"
-        android:textSize="26sp"/>
+        android:textSize="24sp"
+        android:textColor="?attr/colorOnSurface"/>
 
-    <EditText
-        android:id="@+id/etAnnouncement"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Every member will see this at the top of the chat."
+        android:textSize="14sp"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:gravity="top"
-        android:hint="Write an announcement..."
-        android:layout_marginTop="20dp"/>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Write an announcement...">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etAnnouncement"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/btnPostAnnouncement"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="?attr/colorPrimary"
         android:text="Post Announcement"
-        android:layout_marginTop="20dp"/>
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
 
 </LinearLayout>

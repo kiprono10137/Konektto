@@ -1,13 +1,12 @@
 package com.example.konektto.konektto.activities
 
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.konektto.R
+import com.google.android.material.chip.ChipGroup
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -18,7 +17,7 @@ class CreateRoomActivity : AppCompatActivity() {
 
     private lateinit var etRoomName: EditText
     private lateinit var etRoomDescription: EditText
-    private lateinit var spCategory: Spinner
+    private lateinit var chipGroupCategory: ChipGroup
     private lateinit var btnCreateRoom: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,30 +30,8 @@ class CreateRoomActivity : AppCompatActivity() {
 
         etRoomName = findViewById(R.id.etRoomName)
         etRoomDescription = findViewById(R.id.etRoomDescription)
-        spCategory = findViewById(R.id.spCategory)
+        chipGroupCategory = findViewById(R.id.chipGroupCategory)
         btnCreateRoom = findViewById(R.id.btnCreateRoom)
-
-        val categories = arrayOf(
-            "Football",
-            "Gaming",
-            "Music",
-            "Programming",
-            "Technology",
-            "Business",
-            "Fashion",
-            "Movies",
-            "Relationships",
-            "Education",
-            "General"
-        )
-
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            categories
-        )
-
-        spCategory.adapter = adapter
 
         btnCreateRoom.setOnClickListener {
 
@@ -63,11 +40,34 @@ class CreateRoomActivity : AppCompatActivity() {
         }
     }
 
+    /** Maps the checked chip back to the plain category string Firestore
+     *  and CategoryStyle both expect (no emoji, just the name). */
+    private fun selectedCategory(): String {
+
+        return when (chipGroupCategory.checkedChipId) {
+
+            R.id.chipFootball -> "Football"
+            R.id.chipGaming -> "Gaming"
+            R.id.chipMusic -> "Music"
+            R.id.chipProgramming -> "Programming"
+            R.id.chipTechnology -> "Technology"
+            R.id.chipBusiness -> "Business"
+            R.id.chipFashion -> "Fashion"
+            R.id.chipMovies -> "Movies"
+            R.id.chipRelationships -> "Relationships"
+            R.id.chipEducation -> "Education"
+
+            else -> "General"
+
+        }
+
+    }
+
     private fun createRoom() {
 
         val roomName = etRoomName.text.toString().trim()
         val roomDescription = etRoomDescription.text.toString().trim()
-        val category = spCategory.selectedItem.toString()
+        val category = selectedCategory()
 
         if (roomName.isEmpty()) {
             etRoomName.error = "Room name is required"

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
     android:fillViewport="true">
 
     <LinearLayout
@@ -15,16 +17,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Create Community"
-            android:textSize="32sp"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:text="Start a new community and invite others to join."
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <!-- Community Name -->
@@ -32,7 +34,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="28dp"
             android:hint="Community name">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -49,7 +51,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="16dp"
             android:hint="What's your community about?">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -62,21 +64,123 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Category -->
+        <!-- Category, as selectable chips instead of a Spinner : a
+             Spinner is one of the most dated-looking widgets in the whole
+             Android toolkit, and this exact set of categories already has
+             real color identity everywhere else in the app (community
+             cards, the room dashboard header). Deliberately NOT using
+             those per-category colors here though: for a selection
+             control, one consistent accent for "this one is chosen" reads
+             as more considered than a wall of ten different colors
+             competing for attention while you're just picking one. -->
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="24dp"
             android:text="Category"
             android:textStyle="bold"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="?attr/colorOnSurface" />
 
-        <Spinner
-            android:id="@+id/spCategory"
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupCategory"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="8dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:singleSelection="true"
+            app:singleLine="false">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFootball"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="⚽ Football" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipGaming"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="🎮 Gaming" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMusic"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="🎵 Music" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipProgramming"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="💻 Programming" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTechnology"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="📱 Technology" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBusiness"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="💼 Business" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFashion"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="👕 Fashion" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMovies"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="🎬 Movies" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipRelationships"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="❤️ Relationships" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipEducation"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="📚 Education" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipGeneral"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:checked="true"
+                android:text="💬 General" />
+
+        </com.google.android.material.chip.ChipGroup>
 
         <!-- Create Button -->
 
@@ -85,10 +189,11 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="28dp"
-            android:text="CREATE COMMUNITY"
-            android:textAllCaps="true"
+            android:backgroundTint="?attr/colorPrimary"
+            android:text="Create Community"
+            android:textColor="@color/white"
             android:textStyle="bold"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
     </LinearLayout>
 
