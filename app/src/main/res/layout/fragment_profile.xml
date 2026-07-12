@@ -1,120 +1,208 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground">
+    android:background="?android:attr/colorBackground"
+    android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="24dp">
+        android:layout_height="wrap_content">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/imgProfile"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
-            android:layout_marginTop="20dp"
-            android:background="?attr/colorSurfaceVariant"
-            android:padding="4dp"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/sym_def_app_icon"
-            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Konektto.Circle"
-            app:strokeColor="?attr/colorPrimaryContainer"
-            app:strokeWidth="3dp" />
+        <!-- HERO: full-bleed brand gradient banner, the avatar overlaps
+             its lower edge : this single element does more to make the
+             screen feel designed, rather than defaulted, than anything
+             else on it. -->
+        <View
+            android:id="@+id/heroGradient"
+            android:layout_width="0dp"
+            android:layout_height="190dp"
+            android:background="@drawable/gradient_brand_hero"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-        <Button
-            android:id="@+id/btnChangePhoto"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="📷 Change Photo" />
+        <!-- Avatar sits in a slightly larger gradient-ring circle, itself
+             overlapping the hero/content boundary by half its height. -->
+        <FrameLayout
+            android:id="@+id/avatarRing"
+            android:layout_width="136dp"
+            android:layout_height="136dp"
+            android:background="@drawable/gradient_avatar_ring"
+            app:layout_constraintTop_toTopOf="@id/heroGradient"
+            app:layout_constraintBottom_toBottomOf="@id/heroGradient"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="70dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgProfile"
+                android:layout_width="126dp"
+                android:layout_height="126dp"
+                android:layout_gravity="center"
+                android:background="?attr/colorSurface"
+                android:padding="4dp"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/sym_def_app_icon"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Konektto.Circle"/>
+
+            <!-- Small camera-badge overlay instead of a separate full-width
+                 "Change Photo" button : tap the badge on your own avatar,
+                 the way every modern app handles this now. -->
+            <Button
+                android:id="@+id/btnChangePhoto"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="2dp"
+                android:layout_marginBottom="2dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:padding="0dp"
+                android:backgroundTint="?attr/colorPrimary"
+                android:text="📷"
+                android:textSize="14sp"
+                app:cornerRadius="18dp"/>
+
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="14dp"
             android:text="Username"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/avatarRing"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <TextView
             android:id="@+id/tvEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:text="email@example.com"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="16sp" />
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/tvUsername"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Primary action: the one thing on this screen someone is most
+             likely to want to do, given the standout gradient treatment
+             rather than looking identical to every other action below it. -->
+        <Button
+            android:id="@+id/btnEditProfile"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginHorizontal="24dp"
+            android:background="@drawable/gradient_button_pill"
+            android:text="✏️  Edit Profile"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:elevation="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tvEmail"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Everything else reads as a clean settings-style list inside
+             one card, not five buttons that all look the same -->
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
+            android:id="@+id/actionsCard"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_marginHorizontal="4dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="20dp"
             app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="4dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="2dp"
             app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp">
+            app:strokeWidth="1dp"
+            app:layout_constraintTop_toBottomOf="@id/btnEditProfile"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <Button
-                    android:id="@+id/btnEditProfile"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="✏️ Edit Profile" />
+                android:paddingVertical="4dp">
 
                 <Button
                     android:id="@+id/btnMyRooms"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="🏠 My Communities" />
+                    android:layout_height="56dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="🏠   My Communities"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/colorOutline"/>
 
                 <Button
                     android:id="@+id/btnFriendRequests"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="🤝 Friend Requests" />
+                    android:layout_height="56dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="🤝   Friend Requests"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/colorOutline"/>
 
                 <Button
                     android:id="@+id/btnSettings"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="⚙️ Settings" />
-
-                <Button
-                    android:id="@+id/btnLogout"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="?attr/colorError"
-                    android:text="🚪 Logout"
-                    android:textColor="?attr/colorOnError" />
+                    android:layout_height="56dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="⚙️   Settings"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"/>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-    </LinearLayout>
+        <!-- Logout is destructive and different in kind from the rest of
+             this list : it gets set apart, not stacked in as one more
+             identical row. -->
+        <Button
+            android:id="@+id/btnLogout"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="32dp"
+            android:text="🚪  Log Out"
+            android:textColor="?attr/colorError"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/actionsCard"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
