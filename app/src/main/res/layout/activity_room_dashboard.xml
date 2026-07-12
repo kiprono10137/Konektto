@@ -1,57 +1,254 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="?android:attr/colorBackground">
 
-    <!-- HEADER -->
+    <!-- HEADER: neutral surface, not a solid color block : the room's
+         category color shows up as a deliberate accent (icon circle,
+         category pill), not as wallpaper filling the whole header. -->
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:background="?attr/colorPrimary">
+        android:background="?attr/colorSurface"
+        android:padding="20dp">
 
-        <TextView
-            android:id="@+id/tvRoomTitle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Football Fans"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnPrimary"/>
+            android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/tvCreator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Created by Kip"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="15sp"/>
+            <FrameLayout
+                android:id="@+id/headerIconContainer"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/circle_tintable">
 
-        <TextView
-            android:id="@+id/tvCategory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="⚽ Football"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="15sp"/>
+                <TextView
+                    android:id="@+id/tvHeaderEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="💬"
+                    android:textSize="24sp"/>
 
-        <TextView
-            android:id="@+id/tvMembers"
-            android:layout_width="wrap_content"
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="14dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvRoomTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Football Fans"
+                    android:textSize="21sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="?attr/colorOnSurface"/>
+
+                <TextView
+                    android:id="@+id/tvCreator"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Created by Kip"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="👥 1 Member"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="15sp"/>
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚽ Football"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:background="@drawable/pill_badge_tintable"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"/>
+
+            <TextView
+                android:id="@+id/tvMembers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:drawableStart="@drawable/ic_people"
+                android:drawableTint="?attr/colorOnSurfaceVariant"
+                android:drawablePadding="6dp"
+                android:gravity="center_vertical"
+                android:text="1 Member"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"/>
+
+        </LinearLayout>
+
+        <!-- Compact icon-button row : replaces four full-width stacked
+             buttons that used to eat most of the screen before you even
+             saw a single chat message. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <Button
+                    android:id="@+id/btnViewMembers"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:minWidth="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_people"
+                    app:iconTint="?attr/colorOnSurfaceVariant"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Members"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <Button
+                    android:id="@+id/btnInvite"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:minWidth="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_link"
+                    app:iconTint="?attr/colorOnSurfaceVariant"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Invite"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/adminColumn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btnAdminPanel"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:minWidth="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_settings"
+                    app:iconTint="?attr/colorOnSurfaceVariant"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Admin"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <Button
+                    android:id="@+id/btnLeaveRoom"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:minWidth="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:backgroundTint="?attr/colorErrorContainer"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_logout"
+                    app:iconTint="?attr/colorError"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Leave"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorError"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"/>
 
     <!-- ANNOUNCEMENT -->
 
@@ -60,7 +257,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="?attr/colorTertiaryContainer"
+        android:background="@drawable/rounded_tertiary_container"
         android:padding="14dp"
         android:text="📢 Announcement"
         android:textColor="?attr/colorOnTertiaryContainer"
@@ -75,7 +272,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
-        android:background="?attr/colorSecondaryContainer"
+        android:background="@drawable/rounded_secondary_container"
         android:padding="14dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -86,60 +283,25 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="📌 Pinned message"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="?attr/colorOnSecondaryContainer"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:text="Pinned message"
             android:textColor="?attr/colorOnSecondaryContainer"
             android:textStyle="bold"/>
 
         <Button
             android:id="@+id/btnUnpin"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:minWidth="0dp"
-            android:text="✕"
-            android:textColor="?attr/colorOnSecondaryContainer"
+            app:icon="@drawable/ic_close"
+            app:iconTint="?attr/colorOnSecondaryContainer"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
             android:visibility="gone"/>
-
-    </LinearLayout>
-
-    <!-- BUTTONS -->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="16dp">
-
-        <Button
-            android:id="@+id/btnAdminPanel"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="👑 Admin Panel"
-            android:visibility="gone"/>
-
-        <Button
-            android:id="@+id/btnViewMembers"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="8dp"
-            android:text="👥 View Members"/>
-
-        <Button
-            android:id="@+id/btnInvite"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="8dp"
-            android:text="🔗 Invite Friends"/>
-
-        <Button
-            android:id="@+id/btnLeaveRoom"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="?attr/colorError"
-            android:text="🚪 Leave Community"
-            android:textColor="?attr/colorOnError"/>
 
     </LinearLayout>
 
@@ -165,35 +327,42 @@
 
         <Button
             android:id="@+id/btnAttach"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="48dp"
-            android:layout_height="56dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:minWidth="0dp"
-            android:padding="0dp"
-            android:text="📎"
-            android:textSize="18sp"/>
+            app:icon="@drawable/ic_attach"
+            app:iconTint="?attr/colorOnSurfaceVariant"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"/>
 
         <com.example.konektto.konektto.widgets.GifSupportEditText
             android:id="@+id/etMessage"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:background="@android:drawable/edit_text"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/message_input_background"
             android:hint="Message the community..."
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?attr/colorOnSurfaceVariant"
             android:inputType="textMultiLine"
             android:maxLines="4"
-            android:paddingHorizontal="16dp"/>
+            android:paddingHorizontal="18dp"
+            android:textSize="15sp"/>
 
         <Button
             android:id="@+id/btnSend"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginStart="10dp"
-            android:text="➜"
-            android:textSize="18sp"/>
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:minWidth="0dp"
+            android:backgroundTint="?attr/colorPrimary"
+            app:icon="@drawable/ic_send"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"/>
 
     </LinearLayout>
 

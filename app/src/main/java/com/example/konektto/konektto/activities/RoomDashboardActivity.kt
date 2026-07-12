@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +21,7 @@ import com.example.konektto.konektto.fragments.AttachmentPickerSheet
 import com.example.konektto.konektto.models.Message
 import com.example.konektto.konektto.utils.AttachmentUploader
 import com.example.konektto.konektto.utils.AudioPlaybackManager
+import com.example.konektto.konektto.utils.CategoryStyle
 import com.example.konektto.konektto.utils.VoiceRecorderDialog
 import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
@@ -47,6 +49,9 @@ class RoomDashboardActivity : AppCompatActivity() {
     private lateinit var btnInvite: Button
     private lateinit var btnLeaveRoom: Button
     private lateinit var btnAdminPanel: Button
+    private lateinit var adminColumn: View
+    private lateinit var headerIconContainer: FrameLayout
+    private lateinit var tvHeaderEmoji: TextView
 
     private lateinit var adapter: MessageAdapter
     private lateinit var db: FirebaseFirestore
@@ -93,6 +98,8 @@ class RoomDashboardActivity : AppCompatActivity() {
         tvPinnedMessage = findViewById(R.id.tvPinnedMessage)
         btnUnpin = findViewById(R.id.btnUnpin)
 
+        headerIconContainer = findViewById(R.id.headerIconContainer)
+        tvHeaderEmoji = findViewById(R.id.tvHeaderEmoji)
 
         rvMessages = findViewById(R.id.rvMessages)
         etMessage = findViewById(R.id.etMessage)
@@ -103,6 +110,7 @@ class RoomDashboardActivity : AppCompatActivity() {
         btnInvite = findViewById(R.id.btnInvite)
         btnLeaveRoom = findViewById(R.id.btnLeaveRoom)
         btnAdminPanel = findViewById(R.id.btnAdminPanel)
+        adminColumn = findViewById(R.id.adminColumn)
 
         db = FirebaseFirestore.getInstance()
 
@@ -246,14 +254,19 @@ class RoomDashboardActivity : AppCompatActivity() {
                 val category =
                     document.getString("category") ?: "General"
 
-                tvCategory.text =
-                    "Category: $category"
+                val style = CategoryStyle.of(category)
+
+                tvHeaderEmoji.text = style.emoji
+                tvCategory.text = "${style.emoji} ${style.displayName}"
+
+                tintDrawable(headerIconContainer.background, style.color)
+                tintDrawable(tvCategory.background, style.color)
 
                 val members =
                     document.getLong("memberCount") ?: 1
 
                 tvMembers.text =
-                    "👥 $members Members"
+                    if (members == 1L) "1 Member" else "$members Members"
 
                 inviteCode = document.getString("inviteCode") ?: ""
 
@@ -269,10 +282,12 @@ class RoomDashboardActivity : AppCompatActivity() {
                 ) {
 
                     btnAdminPanel.visibility = View.VISIBLE
+                    adminColumn.visibility = View.VISIBLE
 
                 } else {
 
                     btnAdminPanel.visibility = View.GONE
+                    adminColumn.visibility = View.GONE
 
                 }
 
@@ -711,7 +726,7 @@ class RoomDashboardActivity : AppCompatActivity() {
                     if (pinnedText.isNotEmpty()) {
 
                         pinnedMessageBanner.visibility = View.VISIBLE
-                        tvPinnedMessage.text = "📌 $pinnedSender: $pinnedText"
+                        tvPinnedMessage.text = "$pinnedSender: $pinnedText"
                         updateUnpinButtonVisibility()
 
                     } else {
@@ -820,6 +835,16 @@ class RoomDashboardActivity : AppCompatActivity() {
                     "pinnedMessageSenderName" to ""
                 )
             )
+
+    }
+
+    private fun tintDrawable(drawable: android.graphics.drawable.Drawable?, color: Int) {
+
+        val mutable = drawable?.mutate()
+
+        if (mutable is android.graphics.drawable.GradientDrawable) {
+            mutable.setColor(color)
+        }
 
     }
 
