@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@android:color/white">
+
+    <!-- Camera body -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,7 L8,7 L9.5,5 L14.5,5 L16,7 L20,7 C21.1,7 22,7.9 22,9 L22,18 C22,19.1 21.1,20 20,20 L4,20 C2.9,20 2,19.1 2,18 L2,9 C2,7.9 2.9,7 4,7 Z" />
+
+    <!-- Lens ring (outer circle minus inner circle via evenOdd fill) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M12,17.5 C14.76,17.5 17,15.26 17,12.5 C17,9.74 14.76,7.5 12,7.5 C9.24,7.5 7,9.74 7,12.5 C7,15.26 9.24,17.5 12,17.5 Z M12,15.7 C10.23,15.7 8.8,14.27 8.8,12.5 C8.8,10.73 10.23,9.3 12,9.3 C13.77,9.3 15.2,10.73 15.2,12.5 C15.2,14.27 13.77,15.7 12,15.7 Z" />
+
+</vector>
