@@ -1,12 +1,15 @@
 package com.example.konektto.konektto.adapters
 
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.models.Room
+import com.example.konektto.konektto.utils.CategoryStyle
 
 class RoomAdapter(
     private val rooms: List<Room>,
@@ -15,6 +18,8 @@ class RoomAdapter(
 
     inner class RoomViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        val iconContainer: FrameLayout = itemView.findViewById(R.id.iconContainer)
+        val tvIconEmoji: TextView = itemView.findViewById(R.id.tvIconEmoji)
         val tvCategory: TextView = itemView.findViewById(R.id.tvCategory)
         val tvRoomName: TextView = itemView.findViewById(R.id.tvRoomName)
         val tvRoomDescription: TextView = itemView.findViewById(R.id.tvRoomDescription)
@@ -49,24 +54,31 @@ class RoomAdapter(
         holder.tvRoomDescription.text = room.roomDescription
 
         holder.tvMemberCount.text =
-            "👥 ${room.memberCount} Members"
+            if (room.memberCount == 1) "1 Member" else "${room.memberCount} Members"
 
-        holder.tvCategory.text = when (room.category) {
+        val style = CategoryStyle.of(room.category)
 
-            "Football" -> "⚽ Football"
-            "Gaming" -> "🎮 Gaming"
-            "Music" -> "🎵 Music"
-            "Programming" -> "💻 Programming"
-            "Technology" -> "📱 Technology"
-            "Business" -> "💼 Business"
-            "Fashion" -> "👕 Fashion"
-            "Movies" -> "🎬 Movies"
-            "Relationships" -> "❤️ Relationships"
-            "Education" -> "📚 Education"
+        holder.tvIconEmoji.text = style.emoji
+        holder.tvCategory.text = "${style.emoji} ${style.displayName}"
 
-            else -> "💬 General"
-        }
+        // Every category gets its own color identity -- a list of ten
+        // different communities should look alive and organized at a
+        // glance, not like ten copies of the same purple pill.
+        tintDrawable(holder.iconContainer.background, style.color)
+        tintDrawable(holder.tvCategory.background, style.color)
+
     }
 
     override fun getItemCount(): Int = rooms.size
+
+    private fun tintDrawable(drawable: android.graphics.drawable.Drawable?, color: Int) {
+
+        val mutable = drawable?.mutate()
+
+        if (mutable is GradientDrawable) {
+            mutable.setColor(color)
+        }
+
+    }
+
 }

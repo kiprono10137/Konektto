@@ -1,5 +1,6 @@
 package com.example.konektto.konektto.adapters
 
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.konektto.R
 import com.example.konektto.konektto.models.RecommendedRoom
+import com.example.konektto.konektto.utils.CategoryStyle
 
 class RecommendedRoomAdapter(
     private val items: List<RecommendedRoom>,
@@ -48,12 +50,14 @@ class RecommendedRoomAdapter(
 
         holder.tvName.text = item.room.roomName.ifBlank { "Community" }
 
-        val category = item.room.category
-        if (category.isNotBlank()) {
-            holder.tvCategory.visibility = View.VISIBLE
-            holder.tvCategory.text = category
-        } else {
-            holder.tvCategory.visibility = View.GONE
+        val style = CategoryStyle.of(item.room.category)
+
+        holder.tvCategory.visibility = View.VISIBLE
+        holder.tvCategory.text = "${style.emoji} ${style.displayName}"
+
+        val mutable = holder.tvCategory.background?.mutate()
+        if (mutable is GradientDrawable) {
+            mutable.setColor(style.color)
         }
 
         holder.tvReason.text = item.reason
