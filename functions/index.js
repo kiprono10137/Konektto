@@ -22,10 +22,16 @@
  */
 
 const {onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const {defineSecret} = require("firebase-functions/params");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore} = require("firebase-admin/firestore");
 const {getMessaging} = require("firebase-admin/messaging");
 const {logger} = require("firebase-functions");
+
+// Stored via `firebase functions:secrets:set PERSPECTIVE_API_KEY`, never
+// hardcoded here or anywhere in the Android app -- an API key baked into
+// the client is visible to anyone who decompiles the APK.
+const perspectiveApiKey = defineSecret("PERSPECTIVE_API_KEY");
 
 initializeApp();
 const db = getFirestore();
@@ -167,6 +173,96 @@ exports.onFriendRequestAccepted = onDocumentUpdated(
           channelId: "social",
         },
       );
+
+    }
+
+  },
+);
+
+/**
+ * Smart moderation for community chat, using Google's Perspective API.
+ *
+ * Deliberately scoped to community/room messages only, not private DMs --
+ * moderating a private conversation between two consenting adults is a
+ * different (and much more privacy-sensitive) thing than moderating a
+ * public community space, and this only ever touches the latter.
+ *
+ * Deliberately flags rather than deletes. Auto-deleting on an automated
+ * toxicity score means a single false positive silently erases someone's
+ * message with no recourse -- flagging instead means a human (the
+ * message's own sender, or a moderator) still makes the actual call.
+ * The Android client (MessageAdapter.kt) shows flagged messages as a
+ * "tap to view" placeholder to everyone except the sender and
+ * moderators, who see the real text with a warning badge so they can
+ * act on it.
+ */
+exports.onRoomMessageCreated = onDocumentCreated(
+  {
+    document: "rooms/{roomId}/messages/{messageId}",
+    secrets: [perspectiveApiKey],
+  },
+  async (event) => {
+
+    const message = event.data?.data();
+    if (!message || !message.text || message.text.trim().length === 0) {
+      // Attachment-only messages have nothing to analyze.
+      return;
+    }
+
+    const apiKey = perspectiveApiKey.value();
+
+    if (!apiKey) {
+      logger.warn("PERSPECTIVE_API_KEY not set -- skipping moderation check.");
+      return;
+    }
+
+    try {
+
+      const response = await fetch(
+        `https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            comment: {text: message.text},
+            languages: ["en"],
+            requestedAttributes: {TOXICITY: {}},
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        logger.error(`Perspective API returned ${response.status}`);
+        return;
+      }
+
+      const result = await response.json();
+
+      const score =
+        result?.attributeScores?.TOXICITY?.summaryScore?.value ?? 0;
+
+      // 0.75 is a deliberately conservative threshold -- Perspective
+      // scores run 0-1, and erring toward fewer false positives matters
+      // more here than catching every borderline case, since the cost
+      // of a wrongly-flagged message (friction, a "tap to view" wall on
+      // something innocent) is worse than the cost of an occasional
+      // truly toxic message slipping through unflagged.
+      if (score >= 0.75) {
+
+        await event.data.ref.update({
+          flagged: true,
+          toxicityScore: score,
+        });
+
+        logger.info(
+          `Flagged message ${event.params.messageId} in room ${event.params.roomId} (score: ${score.toFixed(2)})`,
+        );
+
+      }
+
+    } catch (err) {
+
+      logger.error("Perspective API request failed:", err.message);
 
     }
 

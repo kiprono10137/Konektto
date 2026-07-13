@@ -27,6 +27,12 @@ class MessageAdapter(
     private val onPinClick: (Message) -> Unit
 ) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
+    // Tap-to-reveal state for flagged messages, keyed by messageId rather
+    // than position -- a message that's been revealed should stay
+    // revealed if it scrolls off-screen and back, which position-based
+    // state on a recycled ViewHolder would not survive.
+    private val revealedMessageIds = mutableSetOf<String>()
+
     inner class MessageViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
@@ -224,7 +230,64 @@ class MessageAdapter(
         } else {
 
             holder.tvMessage.visibility = View.VISIBLE
-            holder.tvMessage.text = message.text
+
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            val isOwnMessage = currentUserId == message.senderId
+            val isModerator = viewerRole == "owner" || viewerRole == "moderator"
+            val isRevealed = message.messageId in revealedMessageIds
+
+            when {
+
+                // The message's own sender and moderators always see the
+                // real text -- hiding a flagged message from the person
+                // who wrote it, or from the person whose job is to act on
+                // it, defeats the point. A warning badge tells them it's
+                // been flagged without actually hiding anything.
+                message.flagged && (isOwnMessage || isModerator) -> {
+
+                    holder.tvMessage.text = "⚠️ ${message.text}"
+
+                }
+
+                // Everyone else sees a placeholder instead of the message
+                // itself, until they explicitly tap through -- soft
+                // friction rather than a silent, total hide, and it
+                // stays revealed once tapped (tracked by messageId, not
+                // position, so scrolling away and back doesn't re-hide it).
+                message.flagged && !isRevealed -> {
+
+                    holder.tvMessage.text =
+                        "⚠️ Message hidden — flagged as potentially inappropriate. Tap to view."
+
+                    holder.tvMessage.setOnClickListener {
+
+                        revealedMessageIds.add(message.messageId)
+                        notifyItemChanged(holder.bindingAdapterPosition)
+
+                    }
+
+                }
+
+                // Once revealed (or if never flagged in the first place),
+                // show the real text -- but a revealed message still
+                // carries the same small warning marker as the sender/
+                // moderator view, so it's clear why it was hidden rather
+                // than just silently looking like any other message now.
+                message.flagged && isRevealed -> {
+
+                    holder.tvMessage.text = "⚠️ ${message.text}"
+                    holder.tvMessage.setOnClickListener(null)
+
+                }
+
+                else -> {
+
+                    holder.tvMessage.text = message.text
+                    holder.tvMessage.setOnClickListener(null)
+
+                }
+
+            }
 
         }
 

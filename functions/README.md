@@ -7,7 +7,7 @@ That's what lives here.
 
 ## What it does
 
-Three Firestore-triggered functions, all in `index.js`:
+Four Firestore-triggered functions, all in `index.js`:
 
 - **onPrivateMessageCreated** -- fires when a new document is created under
   `privateChats/{chatId}/messages/{messageId}`. Sends a push to the
@@ -17,6 +17,18 @@ Three Firestore-triggered functions, all in `index.js`:
 - **onFriendRequestAccepted** -- fires when a `friendRequests/{requestId}`
   doc transitions from `status: "pending"` to `status: "accepted"`.
   Notifies whoever originally sent the request.
+- **onRoomMessageCreated** -- smart moderation for community chat. Fires
+  on every new `rooms/{roomId}/messages/{messageId}` doc, sends the
+  message text to Google's Perspective API for a toxicity score, and
+  flags the message (`flagged: true`, `toxicityScore: <0-1>`) if it
+  scores 0.75 or higher. Deliberately does NOT touch private messages --
+  moderating a private conversation between two consenting adults is a
+  different, more privacy-sensitive thing than moderating a public
+  community space. Deliberately flags rather than auto-deletes -- the
+  Android client shows a flagged message as a "tap to view" placeholder
+  to everyone except its sender and room moderators, who see the real
+  text with a warning badge, so a human still makes the actual call
+  rather than a single automated score silently erasing someone's message.
 
 All three look up the target user's `fcmToken` field on their
 `users/{uid}` document (written automatically by the Android app --
@@ -48,14 +60,36 @@ firebase login
 #    since it's specific to whoever is deploying)
 firebase use --add
 
-# 4. Install function dependencies
+# 4. Set the Perspective API key as a secret (needed for smart
+#    moderation -- see "Getting a Perspective API key" below if you
+#    don't have one yet). This prompts for the key value and stores it
+#    securely in Google Cloud Secret Manager -- it is never written to
+#    any file in this repo.
+firebase functions:secrets:set PERSPECTIVE_API_KEY
+
+# 5. Install function dependencies
 cd functions
 npm install
 
-# 5. Deploy
+# 6. Deploy
 cd ..
 firebase deploy --only functions
 ```
+
+## Getting a Perspective API key
+
+1. console.cloud.google.com -> select your Konektto project (same
+   underlying Google Cloud project as Firebase)
+2. Search for "Perspective Comment Analyzer API" -> Enable
+3. APIs & Services -> Credentials -> + Create Credentials -> API key
+4. Click "Restrict Key" on the new key -- under API restrictions,
+   select "Restrict key" and check only "Perspective Comment Analyzer
+   API". An unrestricted key that leaks is a much bigger problem than a
+   restricted one.
+5. Use that key value in step 4 above (`firebase functions:secrets:set`)
+
+If you ever need to rotate the key, `firebase functions:secrets:set
+PERSPECTIVE_API_KEY` again with the new value, then redeploy.
 
 ## Verifying it worked
 
