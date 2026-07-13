@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,6 +27,8 @@ import com.example.konektto.konektto.utils.VoiceRecorderDialog
 import com.example.konektto.konektto.widgets.GifSupportEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.functions.FirebaseFunctionsException
 
 class RoomDashboardActivity : AppCompatActivity() {
 
@@ -48,6 +51,7 @@ class RoomDashboardActivity : AppCompatActivity() {
     private lateinit var btnViewMembers: Button
     private lateinit var btnInvite: Button
     private lateinit var btnLeaveRoom: Button
+    private lateinit var btnSummary: Button
     private lateinit var btnAdminPanel: Button
     private lateinit var adminColumn: View
     private lateinit var headerIconContainer: FrameLayout
@@ -109,6 +113,7 @@ class RoomDashboardActivity : AppCompatActivity() {
         btnViewMembers = findViewById(R.id.btnViewMembers)
         btnInvite = findViewById(R.id.btnInvite)
         btnLeaveRoom = findViewById(R.id.btnLeaveRoom)
+        btnSummary = findViewById(R.id.btnSummary)
         btnAdminPanel = findViewById(R.id.btnAdminPanel)
         adminColumn = findViewById(R.id.adminColumn)
 
@@ -164,6 +169,10 @@ class RoomDashboardActivity : AppCompatActivity() {
 
         btnLeaveRoom.setOnClickListener {
             leaveRoom()
+        }
+
+        btnSummary.setOnClickListener {
+            requestChatSummary()
         }
 
         btnAdminPanel.setOnClickListener {
@@ -845,6 +854,69 @@ class RoomDashboardActivity : AppCompatActivity() {
         if (mutable is android.graphics.drawable.GradientDrawable) {
             mutable.setColor(color)
         }
+
+    }
+
+    /**
+     * "Catch me up" -- calls the summarizeRoomChat Cloud Function on
+     * demand. Deliberately not automatic (no summary is generated until
+     * someone actually asks for one), since running this on every message
+     * the way moderation does would be wasteful and this costs real money
+     * per call, unlike a Firestore read.
+     */
+    private fun requestChatSummary() {
+
+        btnSummary.isEnabled = false
+
+        val loadingDialog = AlertDialog.Builder(this)
+            .setTitle("Catching you up...")
+            .setMessage("Reading the recent conversation.")
+            .setCancelable(false)
+            .create()
+
+        loadingDialog.show()
+
+        val data = hashMapOf("roomId" to roomId)
+
+        FirebaseFunctions.getInstance()
+            .getHttpsCallable("summarizeRoomChat")
+            .call(data)
+            .addOnSuccessListener { result ->
+
+                loadingDialog.dismiss()
+                btnSummary.isEnabled = true
+
+                @Suppress("UNCHECKED_CAST")
+                val response = result.data as? Map<String, Any>
+                val summary = response?.get("summary") as? String
+                    ?: "Couldn't generate a summary."
+
+                AlertDialog.Builder(this)
+                    .setTitle("✨ Catch Up")
+                    .setMessage(summary)
+                    .setPositiveButton("Got it", null)
+                    .show()
+
+            }
+            .addOnFailureListener { e ->
+
+                loadingDialog.dismiss()
+                btnSummary.isEnabled = true
+
+                // failed-precondition is exactly what the function returns
+                // when the AI provider isn't configured yet -- worth a
+                // clearer message than a raw error, since that's the
+                // expected state until this gets set up.
+                val message = if (e is FirebaseFunctionsException &&
+                    e.code == FirebaseFunctionsException.Code.FAILED_PRECONDITION) {
+                    "AI summaries aren't set up yet for this app."
+                } else {
+                    e.localizedMessage ?: "Failed to generate a summary."
+                }
+
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+            }
 
     }
 

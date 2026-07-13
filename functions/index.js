@@ -22,6 +22,7 @@
  */
 
 const {onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore} = require("firebase-admin/firestore");
@@ -32,6 +33,12 @@ const {logger} = require("firebase-functions");
 // hardcoded here or anywhere in the Android app -- an API key baked into
 // the client is visible to anyone who decompiles the APK.
 const perspectiveApiKey = defineSecret("PERSPECTIVE_API_KEY");
+
+// Same reasoning, for AI chat summaries. Not configured yet -- this
+// function is written and ready, but summarizeRoomChat will return a
+// clear "not configured" error until this secret is set. See
+// functions/README.md for setup once you have a key.
+const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
 initializeApp();
 const db = getFirestore();
@@ -263,6 +270,134 @@ exports.onRoomMessageCreated = onDocumentCreated(
     } catch (err) {
 
       logger.error("Perspective API request failed:", err.message);
+
+    }
+
+  },
+);
+
+/**
+ * "Catch me up" -- an on-demand AI summary of a community's recent chat,
+ * called directly from the Android app (Firebase Functions callable SDK)
+ * rather than triggered automatically. Summarizing on every message the
+ * way moderation does would be wasteful and expensive; this only runs
+ * when someone actually asks for it.
+ *
+ * Not configured yet -- ANTHROPIC_API_KEY has no value until you run
+ * `firebase functions:secrets:set ANTHROPIC_API_KEY` (see README.md).
+ * Until then this returns a clear "not configured" error rather than
+ * silently failing or crashing, so the Android client can show the
+ * person something sensible either way.
+ */
+exports.summarizeRoomChat = onCall(
+  {secrets: [anthropicApiKey]},
+  async (request) => {
+
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const roomId = request.data?.roomId;
+
+    if (!roomId || typeof roomId !== "string") {
+      throw new HttpsError("invalid-argument", "roomId is required.");
+    }
+
+    const db = getFirestore();
+
+    // Callable functions don't get Firestore security rules applied
+    // automatically the way client SDK calls do -- this membership check
+    // has to happen explicitly here, or anyone signed in could summarize
+    // a community they've never joined.
+    const memberDoc = await db.collection("rooms").doc(roomId)
+      .collection("members").doc(request.auth.uid).get();
+
+    if (!memberDoc.exists) {
+      throw new HttpsError(
+        "permission-denied",
+        "You're not a member of this community.",
+      );
+    }
+
+    const messagesSnapshot = await db.collection("rooms").doc(roomId)
+      .collection("messages")
+      .orderBy("timestamp", "desc")
+      .limit(50)
+      .get();
+
+    if (messagesSnapshot.empty) {
+      return {summary: "No messages yet in this community."};
+    }
+
+    // Reverse back to chronological order -- the query above needs
+    // "desc" + limit to get the *most recent* 50, but a summary should
+    // read in the order the conversation actually happened.
+    const messages = messagesSnapshot.docs.reverse().map((doc) => doc.data());
+
+    const transcript = messages.map((m) => {
+
+      const sender = m.senderName || "Someone";
+
+      const content = (m.text && m.text.trim().length > 0)
+        ? m.text
+        : attachmentPreviewText(m.attachmentType);
+
+      return `${sender}: ${content}`;
+
+    }).join("\n");
+
+    const apiKey = anthropicApiKey.value();
+
+    if (!apiKey) {
+      throw new HttpsError(
+        "failed-precondition",
+        "AI summaries aren't set up yet. Ask whoever manages this app's backend to configure it.",
+      );
+    }
+
+    try {
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-5",
+          max_tokens: 300,
+          messages: [
+            {
+              role: "user",
+              content: "Summarize the key points and topics from this " +
+                "group chat conversation in 3-5 short bullet points. " +
+                "Be concise and neutral.\n\nConversation:\n" + transcript,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        logger.error(`Anthropic API returned ${response.status}`);
+        throw new HttpsError("internal", "Failed to generate summary.");
+      }
+
+      const result = await response.json();
+      const summaryText = result?.content?.[0]?.text;
+
+      if (!summaryText) {
+        throw new HttpsError("internal", "Failed to generate summary.");
+      }
+
+      return {summary: summaryText};
+
+    } catch (err) {
+
+      if (err instanceof HttpsError) throw err;
+
+      logger.error("Summary generation failed:", err.message);
+      throw new HttpsError("internal", "Failed to generate summary.");
 
     }
 

@@ -29,6 +29,15 @@ Four Firestore-triggered functions, all in `index.js`:
   to everyone except its sender and room moderators, who see the real
   text with a warning badge, so a human still makes the actual call
   rather than a single automated score silently erasing someone's message.
+- **summarizeRoomChat** -- "Catch me up." A callable function (invoked
+  directly from the Android app via the Firebase Functions SDK, not a
+  Firestore trigger) that reads a community's last 50 messages and asks
+  an LLM (Claude, via the Anthropic API) for a short bullet-point summary.
+  Verifies the caller is actually a member of the room first (callable
+  functions don't get Firestore security rules applied automatically the
+  way client reads/writes do, so this check happens explicitly in the
+  function). Not wired to a real API key yet -- see "Setting up AI
+  summaries" below.
 
 All three look up the target user's `fcmToken` field on their
 `users/{uid}` document (written automatically by the Android app --
@@ -90,6 +99,24 @@ firebase deploy --only functions
 
 If you ever need to rotate the key, `firebase functions:secrets:set
 PERSPECTIVE_API_KEY` again with the new value, then redeploy.
+
+## Setting up AI summaries
+
+The "Catch Up" button in the app is fully built on both ends (Android UI
++ Cloud Function), but won't work until an Anthropic API key is
+configured -- until then, tapping it shows "AI summaries aren't set up
+yet for this app" rather than an error.
+
+1. console.anthropic.com -> sign up / log in -> API Keys -> Create Key
+2. `firebase functions:secrets:set ANTHROPIC_API_KEY` (same pattern as
+   the Perspective key above -- prompts for the value, stores it in
+   Secret Manager, never touches this repo)
+3. `firebase deploy --only functions`
+
+Each summary call costs a small amount (a few cents at most, since it's
+capped at 50 recent messages and a short response) -- unlike the
+moderation function, this only runs when someone actually taps the
+button, not automatically on every message.
 
 ## Verifying it worked
 
